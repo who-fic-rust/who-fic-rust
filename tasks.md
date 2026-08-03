@@ -170,7 +170,16 @@ real WHO downloads on 2026-08-03 (see those specs' "verified" notes).
 - [x] Update CHANGELOG.md
 - [x] `cargo publish --dry-run` for `who-fic-linearization` and
       `who-fic-claml`, then the four 0.2.0 bumps, in dependency order
-- [ ] Publish all six crates; push to git remotes
+- [x] Publish all six crates; push to git remotes
+
+## Published (0.2.0 / 0.1.0)
+
+- [x] `who-fic-linearization` 0.1.0 — https://crates.io/crates/who-fic-linearization
+- [x] `who-fic-claml` 0.1.0 — https://crates.io/crates/who-fic-claml
+- [x] `who-fic-icd` 0.2.0 — https://crates.io/crates/who-fic-icd
+- [x] `who-fic-icf` 0.2.0 — https://crates.io/crates/who-fic-icf
+- [x] `who-fic-ichi` 0.2.0 — https://crates.io/crates/who-fic-ichi
+- [x] `who-fic` 0.2.0 — https://crates.io/crates/who-fic
 
 ## Backlog / future subcrates (not scheduled)
 
