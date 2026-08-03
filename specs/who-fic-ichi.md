@@ -66,10 +66,15 @@ pub enum Section {
 }
 ```
 
-The section is determined by the target's leading character range per the
-published ICHI tabulation. Encode the range table as a structural fact with
-boundary unit tests; expose `IchiCode::section()` and `Target::section()`.
-(If the beta's ranges prove unstable, return `Option<Section>` and document.)
+The section is nominally determined by the target's leading character
+range per the published ICHI tabulation. In practice no verified,
+publicly-sourceable leading-character-to-chapter table could be confirmed
+for Beta-3 (anatomy targets, ICF-derived body-function targets, and other
+categories interleave on shared leading letters), so
+`Target::section(&self) -> Option<Section>` and `IchiCode::section()`
+currently always return `None`, per the spec's explicit fallback clause.
+Rustdoc on `section()` explains why and what would be needed to upgrade it
+(a confirmed WHO Beta-3 leading-character/chapter table).
 
 ### Extension codes
 
@@ -81,9 +86,15 @@ firm. Recorded in tasks.md backlog.
 
 ## Errors
 
-`IchiParseError` per the shared error shape, plus an `axis:
-Option<Axis>` field (`Axis = Target | Action | Means`) identifying where in
-the dotted form parsing failed. `who-fic` converts to `FicError`.
+`IchiParseError` per the shared error shape, plus an `axis: Option<Axis>`
+field on every variant (including `Empty`) (`Axis = Target | Action |
+Means`) identifying which dot-segment of the code failed to parse; `None`
+when the failure isn't attributable to a single segment (e.g. the whole
+input was empty, or the dotted structure itself was wrong — missing
+separators, wrong segment count). `who-fic`'s `From<IchiParseError> for
+FicError` conversion drops the `axis` field (there is no equivalent slot in
+`FicError`); code that needs axis-level detail should match on
+`IchiParseError` directly instead of going through `FicError`.
 
 ## `serde`
 

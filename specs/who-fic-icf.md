@@ -85,11 +85,28 @@ type system should enforce it:
   **barrier** (separator `.`) or a **facilitator** (separator `+`):
   `e150.2` (moderate barrier) vs `e150+2` (moderate facilitator).
 
-Design: `QualifiedIcfCode` = `IcfCode` + component-appropriate qualifier
-payload, with the parser rejecting mismatches (e.g. `+` on a `b` code, three
-qualifiers on a `b` code). A bare `IcfCode` (no qualifiers) remains valid on
-its own — WHO recommends codes be used with qualifiers, but the unqualified
-form is what appears in the tabulation itself.
+Implemented as `QualifiedIcfCode { code: IcfCode, payload: QualifierPayload,
+repr: String }` (all fields private): `QualifierPayload` is a public enum
+with one variant per component (`BodyFunctions(Qualifier)`,
+`BodyStructures(BodyStructureQualifiers)`,
+`ActivitiesAndParticipation(ActivitiesQualifiers)`,
+`EnvironmentalFactors(EnvironmentalQualifier)`), and `EnvironmentalQualifier`
+is itself `Barrier(Qualifier) | Facilitator(Qualifier)` so the `.`/`+`
+distinction is first-class. The only constructors are `FromStr`/
+`TryFrom<&str>`, which validate qualifier count and separator against the
+code's component before building the value — a `d` code with `+`, or a `b`
+code with two digits, is a parse error, never a constructible value.
+`BodyStructureQualifiers` and `ActivitiesQualifiers` model their 1–3 and 1–4
+positional qualifiers as `Qualifier` plus `Option<Qualifier>` fields with
+named accessors (`extent`/`nature`/`location`;
+`performance`/`capacity`/`position_3`/`position_4`). `repr` is a
+precomputed canonical string so `as_str()`/`Display` are O(1); equality,
+hashing, and ordering are defined over `(code, payload)` only, deliberately
+excluding the redundant `repr` cache.
+
+A bare `IcfCode` (no qualifiers) remains valid on its own — WHO recommends
+codes be used with qualifiers, but the unqualified form is what appears in
+the tabulation itself.
 
 ## Errors
 

@@ -3,8 +3,10 @@ name = "who-fic"
 description = "World Health Organization (WHO) Family of International Classifications (FIC): ICD, ICF, ICHI"
 keywords = ["who", "icd", "icf", "ichi", "health"]
 categories = ["science", "parser-implementations"]
+readme = "README.md"
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
@@ -14,8 +16,12 @@ default = ["icd", "icf", "ichi"]
 icd = ["dep:who-fic-icd"]
 icf = ["dep:who-fic-icf"]
 ichi = ["dep:who-fic-ichi"]
+serde = ["who-fic-icd?/serde", "who-fic-icf?/serde", "who-fic-ichi?/serde"]
 
 [dependencies]
 who-fic-icd = { workspace = true, optional = true }
 who-fic-icf = { workspace = true, optional = true }
 who-fic-ichi = { workspace = true, optional = true }
+
+[dev-dependencies]
+serde_json = "1.0.151"

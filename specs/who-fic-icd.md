@@ -35,7 +35,13 @@ subdivision = 1*2( digit / letter )         ; commonly one digit, e.g. "I63.9"
 ```
 
 - `Icd10Code` accessors: `category(&self) -> &str` (3 chars),
-  `subdivision(&self) -> Option<&str>`, `chapter(&self) -> Icd10Chapter`.
+  `subdivision(&self) -> Option<&str>`, `chapter(&self) -> Option<Icd10Chapter>`.
+  `chapter()` returns `Option` rather than a bare `Icd10Chapter`: several
+  numeric sub-ranges within an otherwise-assigned letter (e.g. `D49`,
+  `E91`–`E99`, `K94`–`K99`) are reserved/unassigned by WHO, so a total
+  function would have to fabricate a chapter for codes WHO has not
+  assigned one to. `None` means "this category isn't in any chapter's
+  assigned range," not "parsing failed."
 - Dagger/asterisk markers (`†`, `*`) and national extensions (e.g. ICD-10-CM
   7-character codes) are **out of scope**; parser rejects them. Document this
   prominently — it is the most likely user surprise.
@@ -84,8 +90,23 @@ letter     = A–Z excluding "I" and "O"       ; excluded to avoid 1/0 confusion
 ### `Icd11Chapter`
 
 Enum of chapters 01–26 plus `V` (supplementary functioning assessment) and
-`X` (extension codes). Derived from the code's leading character(s) per the
-official MMS chapter table; encoded with boundary unit tests.
+`X` (extension codes). Derived from the code's leading character per the
+official MMS chapter table (the leading character alone identifies the
+chapter — WHO's reference guide states every code in a chapter shares the
+same first character). Several leading characters (`0`, `T`, `U`, `W`, `Y`,
+`Z`) are unassigned, so `Icd11Code::chapter(&self) -> Option<Icd11Chapter>`
+returns `Option` for the same reason as `Icd10Code::chapter()` above.
+Encoded with boundary unit tests.
+
+### `ExtensionCode`
+
+Codes starting with `X`, used only in postcoordination. A distinct type
+from `Icd11Code`, sharing the same 4-char-plus-optional-subdivision
+grammar (e.g. `XA00.6`). `Icd11Code::from_str` rejects `X`-prefixed input;
+`ExtensionCode::from_str` requires it. Note: this crate's extension-code
+grammar always requires a `.` before the subdivision; WHO's real extension
+codes sometimes use a flat 6-character form without a dot (e.g. `XA0060`) —
+that form is out of scope for now.
 
 ### Postcoordination clusters
 
@@ -96,10 +117,12 @@ ICD-11 codes combine into clusters:
   `NA07.1/8B20` (varies by convention; both separators occur in cluster
   strings)
 
-`Cluster` parses a cluster string into its parts (stems, extensions and
-their attachment), formats canonically, and iterates components. **Syntax
-only**: whether a given extension is *permitted* on a given stem requires
-WHO data and is out of scope (see plan.md risks).
+`Cluster` and `ClusterStem` parse a cluster string into its parts and
+format it back canonically: a `Cluster` is one or more `/`-separated
+`ClusterStem`s, and each `ClusterStem` is one stem code plus zero or more
+`&`-attached extension codes. **Syntax only**: whether a given extension is
+*permitted* on a given stem requires WHO data and is out of scope (see
+plan.md risks).
 
 ## Errors
 

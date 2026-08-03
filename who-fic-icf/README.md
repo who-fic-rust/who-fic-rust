@@ -1,0 +1,47 @@
+# who-fic-icf
+
+World Health Organization (WHO) [International Classification of
+Functioning, Disability and Health
+(ICF)](https://www.who.int/standards/classifications/international-classification-of-functioning-disability-and-health)
+code types for Rust.
+
+Part of the [WHO-FIC-Rust](https://github.com/who-fic-rust/who-fic-rust)
+workspace. See [`who-fic`](https://crates.io/crates/who-fic) for the
+umbrella crate covering ICD, ICF, and ICHI together.
+
+ICF codes have three parts: a component letter (`Component`), a numeric
+hierarchy (`IcfCode`), and optional qualifiers (`QualifiedIcfCode`). This
+crate makes the ICF's qualifier structure — which differs per component,
+including the environmental barrier vs. facilitator distinction — a
+compile-time-enforced part of the type system.
+
+## Example
+
+```rust
+use std::str::FromStr;
+use who_fic_icf::{Component, IcfCode, QualifiedIcfCode};
+
+// The bare hierarchy code, as it appears in the tabulation.
+let code = IcfCode::from_str("b280").unwrap();
+assert_eq!(code.component(), Component::BodyFunctions);
+assert_eq!(code.parent().unwrap().as_str(), "b2");
+
+// The same code with an assessment qualifier attached.
+let qualified = QualifiedIcfCode::from_str("b280.2").unwrap();
+assert_eq!(qualified.code(), &code);
+
+// Environmental factors distinguish barriers (".") from facilitators ("+").
+assert!(QualifiedIcfCode::from_str("e150.2").is_ok()); // barrier
+assert!(QualifiedIcfCode::from_str("e150+2").is_ok()); // facilitator
+assert!(QualifiedIcfCode::from_str("b280+2").is_err()); // facilitator marker invalid outside 'e'
+```
+
+## Features
+
+- `serde` — canonical-string `Serialize`/`Deserialize` for `IcfCode` and
+  `QualifiedIcfCode`.
+
+## License
+
+Licensed under either of [Apache License, Version 2.0](LICENSE-APACHE) or
+[MIT license](LICENSE-MIT) at your option.
