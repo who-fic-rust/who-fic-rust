@@ -102,10 +102,17 @@ See [specs/who-fic-ichi.md](specs/who-fic-ichi.md).
 - [x] CI workflow: fmt, clippy `-D warnings`, test, doc, feature matrix, MSRV
 - [x] Decide and pin MSRV (`rust-version` in `[workspace.package]`) — 1.85
       (edition 2024's minimum)
-- [ ] Per-crate README + crates.io metadata (description, keywords,
+- [x] Per-crate README + crates.io metadata (description, keywords,
       categories, docs.rs config)
 - [x] CHANGELOG.md
-- [ ] `cargo publish --dry-run` in dependency order (subcrates, then umbrella)
+- [x] `cargo publish --dry-run` in dependency order (subcrates, then umbrella)
+
+## Published
+
+- [x] `who-fic-icd` 0.1.0 — https://crates.io/crates/who-fic-icd
+- [x] `who-fic-icf` 0.1.0 — https://crates.io/crates/who-fic-icf
+- [x] `who-fic-ichi` 0.1.0 — https://crates.io/crates/who-fic-ichi
+- [x] `who-fic` 0.1.0 — https://crates.io/crates/who-fic
 
 ## Backlog / future subcrates (not scheduled)
 
