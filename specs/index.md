@@ -1,0 +1,36 @@
+# Specifications: WHO-FIC-Rust
+
+Detailed specifications for the WHO Family of International Classifications
+(FIC) Rust workspace. Read [plan.md](../plan.md) first for the overall plan
+and [tasks.md](../tasks.md) for the task breakdown.
+
+## Spec map
+
+- [architecture.md](architecture.md) — workspace layout, crate conventions,
+  features, errors, testing, CI, licensing constraints
+- [who-fic.md](who-fic.md) — umbrella crate: shared types and feature-gated
+  re-exports
+- [who-fic-icd.md](who-fic-icd.md) — International Classification of
+  Diseases (ICD-10 and ICD-11)
+- [who-fic-icf.md](who-fic-icf.md) — International Classification of
+  Functioning, Disability and Health (ICF)
+- [who-fic-ichi.md](who-fic-ichi.md) — International Classification of
+  Health Interventions (ICHI)
+
+## Relationship to the seed specs
+
+The original one-page seed specs remain at `spec/index.md` (root) and
+`<crate>/spec/index.md`. The files in this `specs/` directory supersede them;
+the seed specs are kept as the original statement of intent.
+
+## Normative sources
+
+- WHO-FIC overview: https://www.who.int/standards/classifications
+- ICD: https://www.who.int/standards/classifications/classification-of-diseases
+- ICF: https://www.who.int/standards/classifications/international-classification-of-functioning-disability-and-health
+- ICHI: https://www.who.int/standards/classifications/international-classification-of-health-interventions
+- ICD-11 browser & reference guide: https://icd.who.int/
+- WHO ICD-API: https://icd.who.int/icdapi
+
+Where this spec and the official WHO reference guides disagree, the WHO
+guides win; file an issue and fix the spec.

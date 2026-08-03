@@ -1,0 +1,21 @@
+[package]
+name = "who-fic"
+description = "World Health Organization (WHO) Family of International Classifications (FIC): ICD, ICF, ICHI"
+keywords = ["who", "icd", "icf", "ichi", "health"]
+categories = ["science", "parser-implementations"]
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[features]
+default = ["icd", "icf", "ichi"]
+icd = ["dep:who-fic-icd"]
+icf = ["dep:who-fic-icf"]
+ichi = ["dep:who-fic-ichi"]
+
+[dependencies]
+who-fic-icd = { workspace = true, optional = true }
+who-fic-icf = { workspace = true, optional = true }
+who-fic-ichi = { workspace = true, optional = true }

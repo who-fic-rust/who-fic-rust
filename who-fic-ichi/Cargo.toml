@@ -1,0 +1,12 @@
+[package]
+name = "who-fic-ichi"
+description = "World Health Organization (WHO) International Classification of Health Interventions (ICHI)"
+keywords = ["who", "ichi", "health", "interventions"]
+categories = ["science", "parser-implementations"]
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]

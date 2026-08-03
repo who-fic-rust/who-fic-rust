@@ -1,0 +1,20 @@
+[workspace]
+resolver = "3"
+members = [
+    "who-fic",
+    "who-fic-icd",
+    "who-fic-icf",
+    "who-fic-ichi",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/joelparkerhenderson/who-fic-rust"
+authors = ["Joel Parker Henderson <joel@joelparkerhenderson.com>"]
+
+[workspace.dependencies]
+who-fic-icd = { version = "0.1.0", path = "who-fic-icd" }
+who-fic-icf = { version = "0.1.0", path = "who-fic-icf" }
+who-fic-ichi = { version = "0.1.0", path = "who-fic-ichi" }

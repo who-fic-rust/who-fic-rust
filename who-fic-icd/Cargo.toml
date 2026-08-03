@@ -1,0 +1,12 @@
+[package]
+name = "who-fic-icd"
+description = "World Health Organization (WHO) International Classification of Diseases (ICD)"
+keywords = ["who", "icd", "icd10", "icd11", "health"]
+categories = ["science", "parser-implementations"]
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
