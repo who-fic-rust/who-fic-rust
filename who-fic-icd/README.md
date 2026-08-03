@@ -31,6 +31,14 @@ assert!(code.chapter().is_some());
 ## Features
 
 - `serde` — canonical-string `Serialize`/`Deserialize` for all code types.
+- `claml` — `icd10::claml` module: build an `Icd10ClamlIndex` (code → title
+  lookup) from a [ClaML](https://crates.io/crates/who-fic-claml) document
+  you parse yourself. You supply the ICD-10 export file; this crate never
+  bundles WHO content.
+- `linearization` — `icd11::linearization` module: build an
+  `Icd11LinearizationIndex` (code → title/chapter/grouping lookup) from a
+  [WHO linearization export](https://crates.io/crates/who-fic-linearization)
+  you parse yourself, same principle.
 
 ## License
 

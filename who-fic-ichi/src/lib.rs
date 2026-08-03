@@ -27,6 +27,9 @@
 //! - [`extension`] — a documentation-only module sketching ICHI's
 //!   post-coordinated extension codes (laterality, quantity, …), not yet
 //!   implemented.
+//! - [`linearization`] (optional `linearization` feature) — adapts rows
+//!   from a WHO ICHI "Simplified Linearization Output" export (parsed by
+//!   [`who_fic_linearization`]) into a lookup from [`IchiCode`] to title.
 //!
 //! # Example
 //!
@@ -46,6 +49,8 @@ mod error;
 mod section;
 
 pub mod extension;
+#[cfg(feature = "linearization")]
+pub mod linearization;
 
 pub use axis::{Action, Means, Target};
 pub use code::IchiCode;

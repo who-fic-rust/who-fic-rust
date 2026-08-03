@@ -79,12 +79,19 @@ Umbrella crate `who-fic`:
 
 ## Dependencies
 
-- Core crates: zero required dependencies. `serde` (with `derive`) optional.
+- Core crates (`who-fic`, `who-fic-icd`, `who-fic-icf`, `who-fic-ichi`):
+  zero required dependencies. `serde` (with `derive`) optional.
 - No `regex` dependency for code parsing — the grammars are small and fixed;
   hand-written matchers are faster to compile, dependency-free, and give
   better error positions.
 - Dev-dependencies may include `proptest` for property tests.
-- Heavier dependencies (HTTP, async, file formats) only in future subcrates.
+- Heavier dependencies (HTTP, async, file formats) only in future subcrates
+  — with one deliberate exception: `who-fic-claml` depends on `quick-xml`,
+  because general XML parsing is not a good fit for a hand-written matcher
+  the way the small fixed-grammar codes elsewhere in this workspace are.
+  This is documented here so it doesn't look like drift from the
+  zero-dependency norm — it's a one-crate, one-dependency exception, not a
+  change to the norm itself.
 
 ## Testing
 
@@ -116,6 +123,11 @@ This repository must not vendor or embed that content. What ships here:
 - Small numbers of individual codes in tests and docs as factual examples
 
 Anything requiring the full classification data (titles, existence checks,
-search) is out of scope for these crates and is delegated to future
-data-loader or API-client subcrates where the *user* supplies WHO-licensed
-data or credentials.
+search) is out of scope for the core crates and is delegated to the
+format-parser crates (`who-fic-linearization`, `who-fic-claml`) and each
+classification crate's optional data-loading feature (see
+`specs/who-fic-icd.md`, `specs/who-fic-icf.md`, `specs/who-fic-ichi.md`),
+where the *user* supplies a WHO export file they obtained themselves —
+these crates parse it, they do not fetch or embed it. The same applies to
+a possible future `who-fic-icd-api` client, which would consume
+credentials the user supplies.

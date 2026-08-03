@@ -40,6 +40,11 @@ assert!(QualifiedIcfCode::from_str("b280+2").is_err()); // facilitator marker in
 
 - `serde` — canonical-string `Serialize`/`Deserialize` for `IcfCode` and
   `QualifiedIcfCode`.
+- `linearization` — `linearization` module: build an
+  `IcfLinearizationIndex` (code → title lookup) from a
+  [WHO linearization export](https://crates.io/crates/who-fic-linearization)
+  you parse yourself. You supply the export file; this crate never bundles
+  WHO content.
 
 ## License
 

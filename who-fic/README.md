@@ -14,7 +14,7 @@ workspace. Each classification is available directly as its own crate too
 
 ```toml
 [dependencies]
-who-fic = "0.1"
+who-fic = "0.2"
 ```
 
 Each classification is behind a same-named feature, all enabled by
@@ -23,7 +23,7 @@ need to trim dependencies:
 
 ```toml
 [dependencies]
-who-fic = { version = "0.1", default-features = false, features = ["icd"] }
+who-fic = { version = "0.2", default-features = false, features = ["icd"] }
 ```
 
 ## Example
@@ -54,6 +54,12 @@ navigation — not existence checks against WHO's official data. See
 - `icd`, `icf`, `ichi` — pull in and re-export the matching subcrate
   (all default).
 - `serde` — forwards to each enabled subcrate's `serde` feature.
+- `claml` — forwards to `who-fic-icd`'s `claml` feature (ICD-10 data
+  loading from a user-supplied [ClaML](https://crates.io/crates/who-fic-claml)
+  export).
+- `linearization` — forwards to `who-fic-icd`/`who-fic-icf`/`who-fic-ichi`'s
+  `linearization` feature (ICD-11/ICF/ICHI data loading from a
+  user-supplied [WHO linearization export](https://crates.io/crates/who-fic-linearization)).
 
 ## License
 

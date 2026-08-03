@@ -14,9 +14,16 @@ validate, format, and navigate WHO-FIC classification codes:
 - `who-fic-icf` — International Classification of Functioning, Disability and
   Health (ICF).
 - `who-fic-ichi` — International Classification of Health Interventions (ICHI).
+- `who-fic-linearization` — parser for WHO's shared "Simplified
+  Linearization Output" TSV format (feeds optional data-loading features in
+  `who-fic-icd`'s `icd11` module, `who-fic-icf`, and `who-fic-ichi`).
+- `who-fic-claml` — parser for ClaML (ISO 13120), the XML format WHO
+  distributes ICD-10 in (feeds `who-fic-icd`'s `icd10` module).
 
 Further subcrates are created as needed using the parent crate's name as a
-prefix (e.g. `who-fic-icd-api`); see "Future subcrates" below.
+prefix (e.g. `who-fic-icd-api`); see "Future subcrates" below. Status:
+Phases 0–6 shipped as `who-fic`/`who-fic-icd`/`who-fic-icf`/`who-fic-ichi`
+0.1.0 on crates.io; Phase 7 (data loading) is in progress — see tasks.md.
 
 ## Background
 
@@ -69,7 +76,9 @@ who-fic-rust/                  (workspace root, virtual manifest)
 │   └── src/lib.rs             common traits + feature-gated re-exports
 ├── who-fic-icd/               ICD crate (modules: icd10, icd11)
 ├── who-fic-icf/               ICF crate (components b/s/d/e, qualifiers)
-└── who-fic-ichi/              ICHI crate (Target–Action–Means axis codes)
+├── who-fic-ichi/              ICHI crate (Target–Action–Means axis codes)
+├── who-fic-linearization/     WHO linearization TSV format parser
+└── who-fic-claml/             ClaML XML format parser
 ```
 
 Dependency graph (arrows = "depends on"):
@@ -78,12 +87,22 @@ Dependency graph (arrows = "depends on"):
 who-fic ──(feature icd)──▶ who-fic-icd
         ──(feature icf)──▶ who-fic-icf
         ──(feature ichi)─▶ who-fic-ichi
+
+who-fic-icd  ──(feature claml)──────▶ who-fic-claml           (icd10 module)
+             ──(feature linearization)▶ who-fic-linearization (icd11 module)
+who-fic-icf  ──(feature linearization)▶ who-fic-linearization
+who-fic-ichi ──(feature linearization)▶ who-fic-linearization
 ```
 
 The subcrates are independent of each other and of `who-fic` (no cycles;
 shared traits are defined in `who-fic` and *implemented* there for the
 subcrates' types via the re-export layer, or the subcrates stay trait-free
 and `who-fic` provides blanket integration — see `specs/who-fic.md`).
+`who-fic-linearization` and `who-fic-claml` are themselves independent,
+general-purpose format parsers with no WHO-FIC-specific knowledge; each
+classification crate's optional feature adapts their generic output into
+that classification's typed codes (see `specs/who-fic-icd.md`,
+`specs/who-fic-icf.md`, `specs/who-fic-ichi.md`).
 
 ## Phases
 
@@ -119,6 +138,18 @@ CI (fmt, clippy, test, feature matrix, MSRV check), CHANGELOG, crate
 metadata (description, keywords, categories), README per crate,
 `cargo publish --dry-run` for all four crates in dependency order.
 
+### Phase 7 — Data loading (`who-fic-linearization`, `who-fic-claml`)
+Two new general-purpose format-parser crates, verified against real WHO
+exports researched from `icd.who.int/dev11/downloads` (ICD-11 MMS, ICF,
+ICHI all share one TSV "Simplified Linearization Output" shape) and the
+public ClaML DTD (ICD-10's XML export format). Then thin, optional,
+feature-gated adapter modules in the existing three classification crates
+that map the generic parsed rows/classes into that classification's typed
+codes plus title lookup. Supersedes the original, less-informed
+`who-fic-icf-data`/`who-fic-ichi-data` idea below — the discovery that
+ICD-11/ICF/ICHI share one export format made two shared parser crates a
+better fit than N per-classification data crates.
+
 ## Future subcrates (create when needed, not up front)
 
 - `who-fic-icd-api` — client for the WHO ICD-API (`id.who.int`, OAuth2
@@ -126,8 +157,6 @@ metadata (description, keywords, categories), README per crate,
 - `who-fic-icd-10` / `who-fic-icd-11` — split out only if the revisions grow
   enough (data loaders, per-revision tooling) to justify separate crates;
   until then they are modules `icd10`/`icd11` inside `who-fic-icd`.
-- `who-fic-icf-data`, `who-fic-ichi-data` — loaders for user-supplied
-  official WHO data exports (licensing stays the user's responsibility).
 
 ## Risks and open questions
 

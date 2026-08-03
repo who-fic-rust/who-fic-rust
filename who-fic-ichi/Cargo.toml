@@ -13,9 +13,11 @@ authors.workspace = true
 
 [dependencies]
 serde = { version = "1.0.229", features = ["derive"], optional = true }
+who-fic-linearization = { workspace = true, optional = true }
 
 [features]
 serde = ["dep:serde"]
+linearization = ["dep:who-fic-linearization"]
 
 [dev-dependencies]
 proptest = "1.11.0"

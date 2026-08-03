@@ -16,6 +16,11 @@ and [tasks.md](../tasks.md) for the task breakdown.
   Functioning, Disability and Health (ICF)
 - [who-fic-ichi.md](who-fic-ichi.md) — International Classification of
   Health Interventions (ICHI)
+- [who-fic-linearization.md](who-fic-linearization.md) — parser for WHO's
+  shared "Simplified Linearization Output" TSV format (ICD-11 MMS, ICF,
+  ICHI exports)
+- [who-fic-claml.md](who-fic-claml.md) — parser for ClaML (ISO 13120), the
+  XML format WHO distributes ICD-10 in
 
 ## Relationship to the seed specs
 

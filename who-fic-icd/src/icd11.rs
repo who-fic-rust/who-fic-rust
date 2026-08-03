@@ -839,6 +839,387 @@ impl TryFrom<&str> for Cluster {
     }
 }
 
+/// Adapts rows from a parsed WHO Simplified Linearization Output export
+/// (`who-fic-linearization`) into [`Icd11Code`]-keyed title lookups.
+///
+/// Requires the `linearization` feature. WHO distributes the ICD-11 MMS as
+/// this TSV export; per this workspace's licensing constraint
+/// (`specs/architecture.md`), this crate never bundles or fetches that
+/// content — the caller reads an export file they obtained themselves
+/// through a [`who_fic_linearization::LinearizationReader`], and
+/// [`linearization::Icd11LinearizationIndex::from_rows`] adapts its generic
+/// row iterator into typed [`Icd11Code`] lookups.
+///
+/// A real MMS export mixes category rows (which carry a `Code`) with
+/// chapter and block rows (which do not — [`who_fic_linearization::LinearizationRow::code`]
+/// is `None` for those). Rows without a code are expected and are silently
+/// skipped, not treated as an error.
+#[cfg(feature = "linearization")]
+pub mod linearization {
+    use super::Icd11Code;
+    use std::collections::HashMap;
+    use std::fmt;
+    use std::str::FromStr;
+    use who_fic_linearization::{LinearizationError, LinearizationRow};
+
+    /// One MMS row indexed by [`Icd11LinearizationIndex`], adapted to a
+    /// typed [`Icd11Code`].
+    ///
+    /// ```
+    /// use who_fic_linearization::LinearizationReader;
+    /// use who_fic_icd::icd11::linearization::Icd11LinearizationIndex;
+    /// use who_fic_icd::icd11::Icd11Code;
+    /// use std::str::FromStr;
+    ///
+    /// let tsv = "Foundation URI\tLinearization (release) URI\tCode\tBlockId\tTitle\tClassKind\tDepthInKind\tIsResidual\tPrimaryLocation\tChapterNo\tBrowserLink\tisLeaf\tnoOfNonResidualChildren\tVersion:x\n\
+    ///            uri\turi\t1A00\t\t\"Cholera\"\tcategory\t1\tFalse\tTrue\t01\t\"link\"\tTrue\t0\n";
+    /// let reader = LinearizationReader::from_str(tsv);
+    /// let index = Icd11LinearizationIndex::from_rows(reader).unwrap();
+    /// let entry = index.get(&Icd11Code::from_str("1A00").unwrap()).unwrap();
+    /// assert_eq!(entry.code().as_str(), "1A00");
+    /// assert_eq!(entry.title(), "Cholera");
+    /// assert_eq!(entry.class_kind(), "category");
+    /// assert_eq!(entry.chapter_no(), Some("01"));
+    /// assert!(!entry.is_residual());
+    /// ```
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct Icd11ClassEntry {
+        code: Icd11Code,
+        title: String,
+        class_kind: String,
+        is_residual: bool,
+        chapter_no: Option<String>,
+        groupings: Vec<String>,
+    }
+
+    impl Icd11ClassEntry {
+        /// The entry's ICD-11 code.
+        pub fn code(&self) -> &Icd11Code {
+            &self.code
+        }
+
+        /// The row's `Title` column (depth markers already stripped by
+        /// `who-fic-linearization`).
+        pub fn title(&self) -> &str {
+            &self.title
+        }
+
+        /// The row's `ClassKind` column, e.g. `"category"`.
+        ///
+        /// Every entry in this index came from a row that had a `Code`, so
+        /// in practice this is always `"category"` — but it is captured
+        /// verbatim as a string, not assumed, matching
+        /// `who_fic_linearization::LinearizationRow::class_kind`.
+        pub fn class_kind(&self) -> &str {
+            &self.class_kind
+        }
+
+        /// The row's `IsResidual` column: whether this is a residual
+        /// (`.Y`/`.Z`, "other"/"unspecified") category.
+        pub fn is_residual(&self) -> bool {
+            self.is_residual
+        }
+
+        /// The row's `ChapterNo` column, e.g. `"01"`, if present.
+        pub fn chapter_no(&self) -> Option<&str> {
+            self.chapter_no.as_deref()
+        }
+
+        /// The row's block-grouping path (`Grouping1`..`Grouping5`), in
+        /// column order.
+        ///
+        /// Empty for non-MMS layouts, which have no `Grouping` columns.
+        pub fn groupings(&self) -> &[String] {
+            &self.groupings
+        }
+    }
+
+    /// A read-only, in-memory lookup from [`Icd11Code`] to its MMS title
+    /// and row metadata, built once from a user-supplied linearization
+    /// export.
+    ///
+    /// This is not a live query against WHO's API — it indexes whatever
+    /// rows were yielded by the iterator passed to
+    /// [`Icd11LinearizationIndex::from_rows`].
+    ///
+    /// ```
+    /// use who_fic_linearization::LinearizationReader;
+    /// use who_fic_icd::icd11::linearization::Icd11LinearizationIndex;
+    /// use who_fic_icd::icd11::Icd11Code;
+    /// use std::str::FromStr;
+    ///
+    /// let tsv = "Foundation URI\tLinearization (release) URI\tCode\tBlockId\tTitle\tClassKind\tDepthInKind\tIsResidual\tPrimaryLocation\tChapterNo\tBrowserLink\tisLeaf\tnoOfNonResidualChildren\tVersion:x\n\
+    ///            uri\turi\t\t\t\"Certain infectious or parasitic diseases\"\tchapter\t1\tFalse\tTrue\t01\t\"link\"\tFalse\t22\n\
+    ///            uri\turi\t1A00\t\t\"Cholera\"\tcategory\t1\tFalse\tTrue\t01\t\"link\"\tTrue\t0\n";
+    /// let reader = LinearizationReader::from_str(tsv);
+    /// let index = Icd11LinearizationIndex::from_rows(reader).unwrap();
+    ///
+    /// // The chapter row has no `Code` and is silently skipped; only the
+    /// // category row is indexed.
+    /// assert_eq!(index.len(), 1);
+    /// assert_eq!(index.title(&Icd11Code::from_str("1A00").unwrap()), Some("Cholera"));
+    /// ```
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Icd11LinearizationIndex {
+        entries: HashMap<Icd11Code, Icd11ClassEntry>,
+    }
+
+    impl Icd11LinearizationIndex {
+        /// Builds an index from a linearization row iterator, typically a
+        /// [`who_fic_linearization::LinearizationReader`].
+        ///
+        /// For each `Ok` row: if [`LinearizationRow::code`] is `None`
+        /// (chapter/block rows), the row is silently skipped — expected,
+        /// not an error. If it is `Some(s)` but `s` does not parse as an
+        /// [`Icd11Code`], that is a genuine anomaly (a row claiming a code
+        /// that isn't ICD-11-shaped); this method is deliberately lenient
+        /// about it — it skips the row and continues, rather than failing
+        /// the whole build, to stay robust against real-world export
+        /// quirks. If the iterator itself yields an `Err`, that error is
+        /// propagated (wrapped in [`Icd11LinearizationError`]) since it
+        /// means the source file itself was malformed.
+        ///
+        /// See the type-level example above.
+        pub fn from_rows(
+            rows: impl Iterator<Item = Result<LinearizationRow, LinearizationError>>,
+        ) -> Result<Self, Icd11LinearizationError> {
+            let mut entries = HashMap::new();
+            for result in rows {
+                let row = result?;
+                let Some(code_str) = row.code() else {
+                    // Chapter/block row — expected, not an error.
+                    continue;
+                };
+                let Ok(code) = Icd11Code::from_str(code_str) else {
+                    // A row claiming a code that doesn't parse as an
+                    // Icd11Code is a genuine anomaly; be lenient and skip
+                    // it rather than failing the whole index build.
+                    continue;
+                };
+                let entry = Icd11ClassEntry {
+                    code: code.clone(),
+                    title: row.title().to_string(),
+                    class_kind: row.class_kind().to_string(),
+                    is_residual: row.is_residual(),
+                    chapter_no: row.chapter_no().map(str::to_string),
+                    groupings: row.groupings().to_vec(),
+                };
+                entries.insert(code, entry);
+            }
+            Ok(Self { entries })
+        }
+
+        /// The title of the given code, if it is in the index.
+        ///
+        /// ```
+        /// use who_fic_linearization::LinearizationReader;
+        /// use who_fic_icd::icd11::linearization::Icd11LinearizationIndex;
+        /// use who_fic_icd::icd11::Icd11Code;
+        /// use std::str::FromStr;
+        ///
+        /// let tsv = "Foundation URI\tLinearization (release) URI\tCode\tBlockId\tTitle\tClassKind\tDepthInKind\tIsResidual\tPrimaryLocation\tChapterNo\tBrowserLink\tisLeaf\tnoOfNonResidualChildren\tVersion:x\n\
+        ///            uri\turi\t1A00\t\t\"Cholera\"\tcategory\t1\tFalse\tTrue\t01\t\"link\"\tTrue\t0\n";
+        /// let reader = LinearizationReader::from_str(tsv);
+        /// let index = Icd11LinearizationIndex::from_rows(reader).unwrap();
+        /// assert_eq!(index.title(&Icd11Code::from_str("1A00").unwrap()), Some("Cholera"));
+        /// assert_eq!(index.title(&Icd11Code::from_str("CA40").unwrap()), None);
+        /// ```
+        pub fn title(&self, code: &Icd11Code) -> Option<&str> {
+            self.entries.get(code).map(|entry| entry.title.as_str())
+        }
+
+        /// The full entry for the given code, if it is in the index.
+        ///
+        /// ```
+        /// use who_fic_linearization::LinearizationReader;
+        /// use who_fic_icd::icd11::linearization::Icd11LinearizationIndex;
+        /// use who_fic_icd::icd11::Icd11Code;
+        /// use std::str::FromStr;
+        ///
+        /// let tsv = "Foundation URI\tLinearization (release) URI\tCode\tBlockId\tTitle\tClassKind\tDepthInKind\tIsResidual\tPrimaryLocation\tChapterNo\tBrowserLink\tisLeaf\tnoOfNonResidualChildren\tVersion:x\n\
+        ///            uri\turi\t1A00\t\t\"Cholera\"\tcategory\t1\tFalse\tTrue\t01\t\"link\"\tTrue\t0\n";
+        /// let reader = LinearizationReader::from_str(tsv);
+        /// let index = Icd11LinearizationIndex::from_rows(reader).unwrap();
+        /// assert!(index.get(&Icd11Code::from_str("1A00").unwrap()).is_some());
+        /// assert!(index.get(&Icd11Code::from_str("CA40").unwrap()).is_none());
+        /// ```
+        pub fn get(&self, code: &Icd11Code) -> Option<&Icd11ClassEntry> {
+            self.entries.get(code)
+        }
+
+        /// Iterates every indexed entry, in unspecified order.
+        ///
+        /// ```
+        /// use who_fic_linearization::LinearizationReader;
+        /// use who_fic_icd::icd11::linearization::Icd11LinearizationIndex;
+        ///
+        /// let tsv = "Foundation URI\tLinearization (release) URI\tCode\tBlockId\tTitle\tClassKind\tDepthInKind\tIsResidual\tPrimaryLocation\tChapterNo\tBrowserLink\tisLeaf\tnoOfNonResidualChildren\tVersion:x\n\
+        ///            uri\turi\t1A00\t\t\"Cholera\"\tcategory\t1\tFalse\tTrue\t01\t\"link\"\tTrue\t0\n";
+        /// let reader = LinearizationReader::from_str(tsv);
+        /// let index = Icd11LinearizationIndex::from_rows(reader).unwrap();
+        /// assert_eq!(index.iter().count(), 1);
+        /// ```
+        pub fn iter(&self) -> impl Iterator<Item = &Icd11ClassEntry> {
+            self.entries.values()
+        }
+
+        /// The number of indexed entries.
+        ///
+        /// ```
+        /// use who_fic_linearization::LinearizationReader;
+        /// use who_fic_icd::icd11::linearization::Icd11LinearizationIndex;
+        ///
+        /// let tsv = "Foundation URI\tLinearization (release) URI\tCode\tBlockId\tTitle\tClassKind\tDepthInKind\tIsResidual\tPrimaryLocation\tChapterNo\tBrowserLink\tisLeaf\tnoOfNonResidualChildren\tVersion:x\n";
+        /// let reader = LinearizationReader::from_str(tsv);
+        /// let index = Icd11LinearizationIndex::from_rows(reader).unwrap();
+        /// assert_eq!(index.len(), 0);
+        /// ```
+        pub fn len(&self) -> usize {
+            self.entries.len()
+        }
+
+        /// Returns `true` if the index has no entries.
+        ///
+        /// ```
+        /// use who_fic_linearization::LinearizationReader;
+        /// use who_fic_icd::icd11::linearization::Icd11LinearizationIndex;
+        ///
+        /// let tsv = "Foundation URI\tLinearization (release) URI\tCode\tBlockId\tTitle\tClassKind\tDepthInKind\tIsResidual\tPrimaryLocation\tChapterNo\tBrowserLink\tisLeaf\tnoOfNonResidualChildren\tVersion:x\n";
+        /// let reader = LinearizationReader::from_str(tsv);
+        /// let index = Icd11LinearizationIndex::from_rows(reader).unwrap();
+        /// assert!(index.is_empty());
+        /// ```
+        pub fn is_empty(&self) -> bool {
+            self.entries.is_empty()
+        }
+    }
+
+    /// An error building an [`Icd11LinearizationIndex`].
+    ///
+    /// `#[non_exhaustive]` so new variants can be added without a breaking
+    /// change.
+    ///
+    /// ```
+    /// use who_fic_icd::icd11::linearization::Icd11LinearizationError;
+    ///
+    /// fn assert_error_trait<E: std::error::Error>() {}
+    /// assert_error_trait::<Icd11LinearizationError>();
+    /// ```
+    #[non_exhaustive]
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub enum Icd11LinearizationError {
+        /// The underlying [`who_fic_linearization::LinearizationReader`]
+        /// failed to read or parse a row (e.g. malformed TSV) — the source
+        /// file itself was malformed, a genuine error.
+        Linearization(LinearizationError),
+    }
+
+    impl From<LinearizationError> for Icd11LinearizationError {
+        fn from(source: LinearizationError) -> Self {
+            Self::Linearization(source)
+        }
+    }
+
+    impl fmt::Display for Icd11LinearizationError {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                Self::Linearization(source) => {
+                    write!(f, "linearization reader error: {source}")
+                }
+            }
+        }
+    }
+
+    impl std::error::Error for Icd11LinearizationError {
+        fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+            match self {
+                Self::Linearization(source) => Some(source),
+            }
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use who_fic_linearization::LinearizationReader;
+
+        /// A tiny MMS-layout fixture: a chapter row (no code), a category
+        /// row with a real code, and a residual (`.Y`) category row — the
+        /// normal shape of a real MMS export.
+        const MMS_TSV: &str = "Foundation URI\tLinearization (release) URI\tCode\tBlockId\tTitle\tClassKind\tDepthInKind\tIsResidual\tPrimaryLocation\tChapterNo\tBrowserLink\tisLeaf\tnoOfNonResidualChildren\tPrimary tabulation\tGrouping1\tGrouping2\tGrouping3\tGrouping4\tGrouping5\tVersion:2026 Apr 15 - 14:33 UTC\n\
+http://id.who.int/icd/entity/1435254666\thttp://id.who.int/icd/release/11/beta/mms/1435254666\t\t\t\"Certain infectious or parasitic diseases\"\tchapter\t1\tFalse\tTrue\t01\t\"link\"\tFalse\t22\n\
+http://id.who.int/icd/entity/257068234\thttp://id.who.int/icd/release/11/beta/mms/257068234\t1A00\t\t\"- - - Cholera\"\tcategory\t1\tFalse\tTrue\t01\t\"link\"\tTrue\t0\tTrue\tBlockL1-1A0\n\
+http://id.who.int/icd/entity/999999999\thttp://id.who.int/icd/release/11/beta/mms/999999999\t1A03.Y\t\t\"- - - Cholera, other specified\"\tcategory\t1\tTrue\tTrue\t01\t\"link\"\tTrue\t0\tTrue\tBlockL1-1A0\n";
+
+        fn fixture_index() -> Icd11LinearizationIndex {
+            let reader = LinearizationReader::from_str(MMS_TSV);
+            Icd11LinearizationIndex::from_rows(reader).expect("fixture should build")
+        }
+
+        #[test]
+        fn title_and_get_work_for_category_row() {
+            let index = fixture_index();
+            let cholera = Icd11Code::from_str("1A00").unwrap();
+            assert_eq!(index.title(&cholera), Some("Cholera"));
+            let entry = index.get(&cholera).unwrap();
+            assert_eq!(entry.class_kind(), "category");
+            assert_eq!(entry.chapter_no(), Some("01"));
+            assert!(!entry.is_residual());
+            assert_eq!(entry.groupings(), &["BlockL1-1A0".to_string()]);
+        }
+
+        #[test]
+        fn chapter_row_without_code_is_excluded() {
+            let index = fixture_index();
+            // Only the 2 rows with a `Code` are indexed; the chapter row
+            // has none.
+            assert_eq!(index.len(), 2);
+        }
+
+        #[test]
+        fn residual_flag_flows_through_to_entry() {
+            let index = fixture_index();
+            let residual = Icd11Code::from_str("1A03.Y").unwrap();
+            let entry = index.get(&residual).unwrap();
+            assert!(entry.is_residual());
+        }
+
+        #[test]
+        fn skips_row_with_code_that_fails_to_parse_as_icd11() {
+            // "A00" is ICD-10-shaped, not a valid ICD-11 code: a real-world
+            // export anomaly this index is lenient about.
+            let tsv = "Foundation URI\tLinearization (release) URI\tCode\tBlockId\tTitle\tClassKind\tDepthInKind\tIsResidual\tPrimaryLocation\tChapterNo\tBrowserLink\tisLeaf\tnoOfNonResidualChildren\tVersion:x\n\
+uri\turi\tA00\t\t\"Bad code\"\tcategory\t1\tFalse\tTrue\t\t\"link\"\tTrue\t0\n";
+            let reader = LinearizationReader::from_str(tsv);
+            let index = Icd11LinearizationIndex::from_rows(reader).unwrap();
+            assert!(index.is_empty());
+        }
+
+        #[test]
+        fn propagates_reader_errors() {
+            // An unterminated quoted `Title` field is a malformed source
+            // file: a genuine error, not silently skipped.
+            let tsv = "Foundation URI\tLinearization (release) URI\tCode\tBlockId\tTitle\tClassKind\tDepthInKind\tIsResidual\tPrimaryLocation\tChapterNo\tBrowserLink\tisLeaf\tnoOfNonResidualChildren\tVersion:x\n\
+uri\turi\t\t\t\"Unterminated title\tcategory\t1\tFalse\tTrue\t\t\tTrue\t0\n";
+            let reader = LinearizationReader::from_str(tsv);
+            let err = Icd11LinearizationIndex::from_rows(reader).unwrap_err();
+            assert!(matches!(err, Icd11LinearizationError::Linearization(_)));
+        }
+
+        #[cfg(feature = "serde")]
+        #[test]
+        fn entry_serde_round_trip() {
+            let index = fixture_index();
+            let cholera = Icd11Code::from_str("1A00").unwrap();
+            let entry = index.get(&cholera).unwrap();
+            let json = serde_json::to_string(entry).unwrap();
+            let back: Icd11ClassEntry = serde_json::from_str(&json).unwrap();
+            assert_eq!(&back, entry);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

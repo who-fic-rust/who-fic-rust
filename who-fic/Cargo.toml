@@ -17,6 +17,8 @@ icd = ["dep:who-fic-icd"]
 icf = ["dep:who-fic-icf"]
 ichi = ["dep:who-fic-ichi"]
 serde = ["who-fic-icd?/serde", "who-fic-icf?/serde", "who-fic-ichi?/serde"]
+claml = ["who-fic-icd?/claml"]
+linearization = ["who-fic-icd?/linearization", "who-fic-icf?/linearization", "who-fic-ichi?/linearization"]
 
 [dependencies]
 who-fic-icd = { workspace = true, optional = true }

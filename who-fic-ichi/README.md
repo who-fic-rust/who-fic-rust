@@ -32,6 +32,11 @@ assert_eq!(code.means().as_str(), "AD");
 
 - `serde` — canonical-string `Serialize`/`Deserialize` for `IchiCode` and
   the axis types.
+- `linearization` — `linearization` module: build an
+  `IchiLinearizationIndex` (code → title lookup) from a
+  [WHO linearization export](https://crates.io/crates/who-fic-linearization)
+  you parse yourself. You supply the export file; this crate never bundles
+  WHO content.
 
 ## License
 

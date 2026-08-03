@@ -31,6 +31,8 @@ mod code;
 mod component;
 mod error;
 mod level;
+#[cfg(feature = "linearization")]
+pub mod linearization;
 mod qualified;
 mod qualifier;
 

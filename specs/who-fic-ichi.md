@@ -96,6 +96,26 @@ FicError` conversion drops the `axis` field (there is no equivalent slot in
 `FicError`); code that needs axis-level detail should match on
 `IchiParseError` directly instead of going through `FicError`.
 
+## Data loading (optional)
+
+**`linearization` feature** (module `linearization`, depends on
+[`who-fic-linearization`](who-fic-linearization.md)): adapts
+`LinearizationRow`s from WHO's ICHI "Simplified Linearization Output"
+export into a lookup from `IchiCode` to title. Same shape as
+`who-fic-icf`'s `linearization` feature:
+`IchiLinearizationIndex::from_rows(impl Iterator<Item = Result<LinearizationRow,
+LinearizationError>>) -> Result<Self, IchiLinearizationError>` — takes
+exactly what a `LinearizationReader` yields; a reader-level `Err`
+propagates immediately, `.title(&IchiCode) -> Option<&str>`,
+`.get(&IchiCode) -> Option<&IchiClassEntry>`. Rows whose `Code` doesn't
+parse as an `IchiCode` are skipped rather than treated as fatal (in
+practice this includes a small number of `(proposed)` Beta-3 entries still
+using a placeholder `??` target). Retaining the block-title hierarchy
+above each code — which a caller could use to derive real section
+groupings, a path to eventually replacing `Section`'s current always-`None`
+fallback (see above) with real data — is a documented, not-yet-implemented
+future extension of this index, not part of its initial scope.
+
 ## `serde`
 
 Optional feature; `IchiCode` and the axis types serialize as canonical

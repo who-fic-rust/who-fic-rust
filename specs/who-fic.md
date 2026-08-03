@@ -13,6 +13,8 @@ plus feature-gated re-exports.
 | `icf` | yes | depends on and re-exports `who-fic-icf` as `who_fic::icf` |
 | `ichi` | yes | depends on and re-exports `who-fic-ichi` as `who_fic::ichi` |
 | `serde` | no | forwards to each enabled subcrate's `serde` feature |
+| `claml` | no | forwards to `who-fic-icd`'s `claml` feature (ICD-10 data loading) |
+| `linearization` | no | forwards to `who-fic-icd`/`who-fic-icf`/`who-fic-ichi`'s `linearization` feature (ICD-11/ICF/ICHI data loading) |
 
 ```toml
 [features]
@@ -21,6 +23,8 @@ icd = ["dep:who-fic-icd"]
 icf = ["dep:who-fic-icf"]
 ichi = ["dep:who-fic-ichi"]
 serde = ["who-fic-icd?/serde", "who-fic-icf?/serde", "who-fic-ichi?/serde"]
+claml = ["who-fic-icd?/claml"]
+linearization = ["who-fic-icd?/linearization", "who-fic-icf?/linearization", "who-fic-ichi?/linearization"]
 ```
 
 The crate must compile with `--no-default-features` (it is then just the

@@ -420,6 +420,426 @@ impl fmt::Display for Icd10ParseError {
 
 impl std::error::Error for Icd10ParseError {}
 
+/// Adapts parsed ClaML (`who-fic-claml`) documents into [`Icd10Code`]-keyed
+/// title lookups.
+///
+/// Requires the `claml` feature. WHO distributes ICD-10 as ClaML XML; per
+/// this workspace's licensing constraint (`specs/architecture.md`), this
+/// crate never bundles or fetches that content — the caller parses a ClaML
+/// export they obtained themselves into a
+/// [`who_fic_claml::ClamlDocument`], and [`claml::Icd10ClamlIndex::from_document`]
+/// adapts its generic `Class` list into typed [`Icd10Code`] lookups.
+///
+/// A real ClaML document mixes ICD-10 category classes (e.g.
+/// `code="A00"`) with chapter and block classes whose `code` is a *range*
+/// (e.g. `"A00-A09"`), which is not valid single-code ICD-10 syntax. That
+/// is expected and normal, not a parse failure of the document: classes
+/// whose `code` does not parse as an [`Icd10Code`] are silently skipped
+/// rather than treated as an error, and only ICD-10-shaped classes end up
+/// in the index.
+#[cfg(feature = "claml")]
+pub mod claml {
+    use super::{Icd10Code, Icd10ParseError};
+    use std::collections::HashMap;
+    use std::fmt;
+    use std::str::FromStr;
+    use who_fic_claml::ClamlDocument;
+
+    /// One ClaML `Class` indexed by [`Icd10ClamlIndex`], adapted to a typed
+    /// [`Icd10Code`].
+    ///
+    /// ```
+    /// use who_fic_claml::ClamlDocument;
+    /// use who_fic_icd::icd10::claml::Icd10ClamlIndex;
+    /// use who_fic_icd::icd10::Icd10Code;
+    /// use std::str::FromStr;
+    ///
+    /// let xml = r#"
+    /// <ClaML version="2.0">
+    ///   <Class code="A00" kind="category">
+    ///     <Rubric kind="preferred"><Label xml:lang="en">Cholera</Label></Rubric>
+    ///   </Class>
+    /// </ClaML>
+    /// "#;
+    /// let doc = ClamlDocument::from_str(xml).unwrap();
+    /// let index = Icd10ClamlIndex::from_document(&doc).unwrap();
+    /// let entry = index.get(&Icd10Code::from_str("A00").unwrap()).unwrap();
+    /// assert_eq!(entry.code().as_str(), "A00");
+    /// assert_eq!(entry.title(), "Cholera");
+    /// assert_eq!(entry.kind(), "category");
+    /// ```
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+    pub struct Icd10ClassEntry {
+        code: Icd10Code,
+        title: String,
+        kind: String,
+    }
+
+    impl Icd10ClassEntry {
+        /// The entry's ICD-10 code.
+        ///
+        /// ```
+        /// use who_fic_claml::ClamlDocument;
+        /// use who_fic_icd::icd10::claml::Icd10ClamlIndex;
+        /// use who_fic_icd::icd10::Icd10Code;
+        /// use std::str::FromStr;
+        ///
+        /// let xml = r#"<ClaML version="2.0"><Class code="A00" kind="category"/></ClaML>"#;
+        /// let doc = ClamlDocument::from_str(xml).unwrap();
+        /// let index = Icd10ClamlIndex::from_document(&doc).unwrap();
+        /// let entry = index.get(&Icd10Code::from_str("A00").unwrap()).unwrap();
+        /// assert_eq!(entry.code(), &Icd10Code::from_str("A00").unwrap());
+        /// ```
+        pub fn code(&self) -> &Icd10Code {
+            &self.code
+        }
+
+        /// The class's preferred English (`xml:lang="en"`) title, from its
+        /// `kind="preferred"` `Rubric`.
+        ///
+        /// Empty (`""`) if the class had no preferred-English rubric —
+        /// this module's documented policy is to index every
+        /// ICD-10-shaped class it finds and default a missing title to
+        /// empty, rather than dropping the entry (the caller may still
+        /// want the entry for its `kind`, even without a title).
+        ///
+        /// ```
+        /// use who_fic_claml::ClamlDocument;
+        /// use who_fic_icd::icd10::claml::Icd10ClamlIndex;
+        /// use who_fic_icd::icd10::Icd10Code;
+        /// use std::str::FromStr;
+        ///
+        /// let xml = r#"<ClaML version="2.0"><Class code="A00" kind="category"/></ClaML>"#;
+        /// let doc = ClamlDocument::from_str(xml).unwrap();
+        /// let index = Icd10ClamlIndex::from_document(&doc).unwrap();
+        /// let entry = index.get(&Icd10Code::from_str("A00").unwrap()).unwrap();
+        /// assert_eq!(entry.title(), ""); // no preferred rubric in this fixture
+        /// ```
+        pub fn title(&self) -> &str {
+            &self.title
+        }
+
+        /// The raw ClaML `kind` attribute, e.g. `"category"`.
+        ///
+        /// Captured verbatim, as `who_fic_claml::Class::kind` does — the set
+        /// of kinds is open-ended (defined by the source file's own
+        /// `ClassKinds` declaration), not a fixed enum.
+        ///
+        /// ```
+        /// use who_fic_claml::ClamlDocument;
+        /// use who_fic_icd::icd10::claml::Icd10ClamlIndex;
+        /// use who_fic_icd::icd10::Icd10Code;
+        /// use std::str::FromStr;
+        ///
+        /// let xml = r#"<ClaML version="2.0"><Class code="A00" kind="category"/></ClaML>"#;
+        /// let doc = ClamlDocument::from_str(xml).unwrap();
+        /// let index = Icd10ClamlIndex::from_document(&doc).unwrap();
+        /// let entry = index.get(&Icd10Code::from_str("A00").unwrap()).unwrap();
+        /// assert_eq!(entry.kind(), "category");
+        /// ```
+        pub fn kind(&self) -> &str {
+            &self.kind
+        }
+    }
+
+    /// A read-only, in-memory lookup from [`Icd10Code`] to its ClaML title
+    /// and class metadata, built once from a user-supplied
+    /// [`ClamlDocument`].
+    ///
+    /// This is not a live query against WHO's API — it indexes whatever
+    /// `Class` elements were present in the document passed to
+    /// [`Icd10ClamlIndex::from_document`].
+    ///
+    /// ```
+    /// use who_fic_claml::ClamlDocument;
+    /// use who_fic_icd::icd10::claml::Icd10ClamlIndex;
+    /// use who_fic_icd::icd10::Icd10Code;
+    /// use std::str::FromStr;
+    ///
+    /// let xml = r#"
+    /// <ClaML version="2.0">
+    ///   <Class code="A00-A09" kind="block">
+    ///     <Rubric kind="preferred"><Label xml:lang="en">Intestinal infectious diseases</Label></Rubric>
+    ///   </Class>
+    ///   <Class code="A00" kind="category">
+    ///     <Rubric kind="preferred"><Label xml:lang="en">Cholera</Label></Rubric>
+    ///   </Class>
+    /// </ClaML>
+    /// "#;
+    /// let doc = ClamlDocument::from_str(xml).unwrap();
+    /// let index = Icd10ClamlIndex::from_document(&doc).unwrap();
+    ///
+    /// // The block class ("A00-A09") is not ICD-10-code-shaped and is
+    /// // silently skipped; only the category class is indexed.
+    /// assert_eq!(index.len(), 1);
+    /// assert_eq!(index.title(&Icd10Code::from_str("A00").unwrap()), Some("Cholera"));
+    /// ```
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub struct Icd10ClamlIndex {
+        entries: HashMap<Icd10Code, Icd10ClassEntry>,
+    }
+
+    impl Icd10ClamlIndex {
+        /// Builds an index from a parsed ClaML document.
+        ///
+        /// Iterates [`ClamlDocument::classes`]; for each `Class`, attempts
+        /// to parse its `code` as an [`Icd10Code`]. Classes whose code
+        /// does not parse this way — chapter and block classes, whose
+        /// codes are ranges like `"A00-A09"` — are expected and are
+        /// silently skipped, not reported as an error: this method only
+        /// fails for genuine structural problems (see
+        /// [`Icd10ClamlError`]), which in the current implementation never
+        /// occur, but the `Result` return type is kept for
+        /// forward-compatibility with a possible future stricter-validation
+        /// mode.
+        ///
+        /// See the type-level example above.
+        pub fn from_document(doc: &ClamlDocument) -> Result<Self, Icd10ClamlError> {
+            let mut entries = HashMap::new();
+            for class in doc.classes() {
+                let code = match Icd10Code::from_str(class.code()) {
+                    Ok(code) => code,
+                    // Not ICD-10-shaped (e.g. a chapter/block range like
+                    // "A00-A09") — expected, not an error.
+                    Err(_) => continue,
+                };
+                let title = class.preferred_label("en").unwrap_or("").to_string();
+                let kind = class.kind().to_string();
+                entries.insert(code.clone(), Icd10ClassEntry { code, title, kind });
+            }
+            Ok(Self { entries })
+        }
+
+        /// The title of the given code, if it is in the index.
+        ///
+        /// ```
+        /// use who_fic_claml::ClamlDocument;
+        /// use who_fic_icd::icd10::claml::Icd10ClamlIndex;
+        /// use who_fic_icd::icd10::Icd10Code;
+        /// use std::str::FromStr;
+        ///
+        /// let xml = r#"
+        /// <ClaML version="2.0">
+        ///   <Class code="A00" kind="category">
+        ///     <Rubric kind="preferred"><Label xml:lang="en">Cholera</Label></Rubric>
+        ///   </Class>
+        /// </ClaML>
+        /// "#;
+        /// let doc = ClamlDocument::from_str(xml).unwrap();
+        /// let index = Icd10ClamlIndex::from_document(&doc).unwrap();
+        /// assert_eq!(index.title(&Icd10Code::from_str("A00").unwrap()), Some("Cholera"));
+        /// assert_eq!(index.title(&Icd10Code::from_str("Z99").unwrap()), None);
+        /// ```
+        pub fn title(&self, code: &Icd10Code) -> Option<&str> {
+            self.entries.get(code).map(|entry| entry.title.as_str())
+        }
+
+        /// The full entry for the given code, if it is in the index.
+        ///
+        /// ```
+        /// use who_fic_claml::ClamlDocument;
+        /// use who_fic_icd::icd10::claml::Icd10ClamlIndex;
+        /// use who_fic_icd::icd10::Icd10Code;
+        /// use std::str::FromStr;
+        ///
+        /// let xml = r#"<ClaML version="2.0"><Class code="A00" kind="category"/></ClaML>"#;
+        /// let doc = ClamlDocument::from_str(xml).unwrap();
+        /// let index = Icd10ClamlIndex::from_document(&doc).unwrap();
+        /// assert!(index.get(&Icd10Code::from_str("A00").unwrap()).is_some());
+        /// assert!(index.get(&Icd10Code::from_str("Z99").unwrap()).is_none());
+        /// ```
+        pub fn get(&self, code: &Icd10Code) -> Option<&Icd10ClassEntry> {
+            self.entries.get(code)
+        }
+
+        /// Iterates every indexed entry, in unspecified order.
+        ///
+        /// ```
+        /// use who_fic_claml::ClamlDocument;
+        /// use who_fic_icd::icd10::claml::Icd10ClamlIndex;
+        /// use std::str::FromStr;
+        ///
+        /// let xml = r#"<ClaML version="2.0"><Class code="A00" kind="category"/></ClaML>"#;
+        /// let doc = ClamlDocument::from_str(xml).unwrap();
+        /// let index = Icd10ClamlIndex::from_document(&doc).unwrap();
+        /// assert_eq!(index.iter().count(), 1);
+        /// ```
+        pub fn iter(&self) -> impl Iterator<Item = &Icd10ClassEntry> {
+            self.entries.values()
+        }
+
+        /// The number of indexed entries.
+        ///
+        /// ```
+        /// use who_fic_claml::ClamlDocument;
+        /// use who_fic_icd::icd10::claml::Icd10ClamlIndex;
+        /// use std::str::FromStr;
+        ///
+        /// let doc = ClamlDocument::from_str(r#"<ClaML version="2.0"/>"#).unwrap();
+        /// let index = Icd10ClamlIndex::from_document(&doc).unwrap();
+        /// assert_eq!(index.len(), 0);
+        /// ```
+        pub fn len(&self) -> usize {
+            self.entries.len()
+        }
+
+        /// Returns `true` if the index has no entries.
+        ///
+        /// ```
+        /// use who_fic_claml::ClamlDocument;
+        /// use who_fic_icd::icd10::claml::Icd10ClamlIndex;
+        /// use std::str::FromStr;
+        ///
+        /// let doc = ClamlDocument::from_str(r#"<ClaML version="2.0"/>"#).unwrap();
+        /// let index = Icd10ClamlIndex::from_document(&doc).unwrap();
+        /// assert!(index.is_empty());
+        /// ```
+        pub fn is_empty(&self) -> bool {
+            self.entries.is_empty()
+        }
+    }
+
+    /// An error building an [`Icd10ClamlIndex`].
+    ///
+    /// In the current implementation, [`Icd10ClamlIndex::from_document`]
+    /// never actually returns `Err`: a `Class` whose `code` does not parse
+    /// as an [`Icd10Code`] (chapter/block ranges like `"A00-A09"`) is
+    /// expected and is silently skipped rather than erroring. This type is
+    /// kept so that behavior can be extended without a breaking API
+    /// change — for example a possible future stricter-validation
+    /// constructor that treats an unparseable code as an error instead of
+    /// skipping it, which would report [`Icd10ClamlError::InvalidCode`].
+    ///
+    /// `#[non_exhaustive]` so new variants can be added without a breaking
+    /// change.
+    ///
+    /// ```
+    /// use who_fic_icd::icd10::claml::Icd10ClamlError;
+    ///
+    /// fn assert_error_trait<E: std::error::Error>() {}
+    /// assert_error_trait::<Icd10ClamlError>();
+    /// ```
+    #[non_exhaustive]
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    pub enum Icd10ClamlError {
+        /// A `Class` element's `code` did not parse as an [`Icd10Code`].
+        ///
+        /// Not produced by [`Icd10ClamlIndex::from_document`] today (such
+        /// classes are silently skipped); reserved for a possible future
+        /// stricter-validation mode.
+        InvalidCode {
+            /// The class code that failed to parse.
+            code: String,
+            /// The underlying parse error.
+            source: Icd10ParseError,
+        },
+    }
+
+    impl fmt::Display for Icd10ClamlError {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                Self::InvalidCode { code, source } => {
+                    write!(
+                        f,
+                        "ClaML class code {code:?} is not a valid ICD-10 code: {source}"
+                    )
+                }
+            }
+        }
+    }
+
+    impl std::error::Error for Icd10ClamlError {
+        fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+            match self {
+                Self::InvalidCode { source, .. } => Some(source),
+            }
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        /// Mixes a `kind="category"` class with a valid ICD-10 code with a
+        /// `kind="block"` class whose code is a range, not a single ICD-10
+        /// code — the normal shape of a real ClaML document.
+        const FIXTURE: &str = r#"
+<ClaML version="2.0">
+  <Class code="A00-A09" kind="block">
+    <SubClass code="A00"/>
+    <SubClass code="A01"/>
+    <Rubric kind="preferred">
+      <Label xml:lang="en">Intestinal infectious diseases</Label>
+    </Rubric>
+  </Class>
+  <Class code="A00" kind="category">
+    <SuperClass code="A00-A09"/>
+    <Rubric kind="preferred">
+      <Label xml:lang="en">Cholera</Label>
+    </Rubric>
+  </Class>
+  <Class code="A01" kind="category">
+    <SuperClass code="A00-A09"/>
+    <Rubric kind="preferred">
+      <Label xml:lang="en">Typhoid and paratyphoid fevers</Label>
+    </Rubric>
+  </Class>
+</ClaML>
+"#;
+
+        fn fixture_index() -> Icd10ClamlIndex {
+            let doc = ClamlDocument::from_str(FIXTURE).expect("fixture should parse");
+            Icd10ClamlIndex::from_document(&doc).expect("index should build")
+        }
+
+        #[test]
+        fn title_works_for_indexed_category_code() {
+            let index = fixture_index();
+            let a00 = Icd10Code::from_str("A00").unwrap();
+            assert_eq!(index.title(&a00), Some("Cholera"));
+            assert_eq!(index.get(&a00).unwrap().kind(), "category");
+        }
+
+        #[test]
+        fn title_returns_none_for_code_never_in_fixture() {
+            let index = fixture_index();
+            let z99 = Icd10Code::from_str("Z99").unwrap();
+            assert_eq!(index.title(&z99), None);
+            assert!(index.get(&z99).is_none());
+        }
+
+        #[test]
+        fn block_class_with_range_code_is_silently_skipped() {
+            let index = fixture_index();
+            // Only the 2 category classes are indexed; the block class
+            // ("A00-A09") is not ICD-10-code-shaped.
+            assert_eq!(index.len(), 2);
+            assert!(index.iter().all(|entry| entry.code().as_str() != "A00-A09"));
+        }
+
+        #[test]
+        fn missing_preferred_label_defaults_to_empty_title() {
+            let xml = r#"<ClaML version="2.0"><Class code="B00" kind="category"/></ClaML>"#;
+            let doc = ClamlDocument::from_str(xml).unwrap();
+            let index = Icd10ClamlIndex::from_document(&doc).unwrap();
+            let b00 = Icd10Code::from_str("B00").unwrap();
+            assert_eq!(index.title(&b00), Some(""));
+        }
+
+        #[cfg(feature = "serde")]
+        #[test]
+        fn entry_serde_round_trip() {
+            let index = fixture_index();
+            let a00 = Icd10Code::from_str("A00").unwrap();
+            let entry = index.get(&a00).unwrap();
+            let json = serde_json::to_string(entry).unwrap();
+            let back: Icd10ClassEntry = serde_json::from_str(&json).unwrap();
+            assert_eq!(&back, entry);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

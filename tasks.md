@@ -107,19 +107,75 @@ See [specs/who-fic-ichi.md](specs/who-fic-ichi.md).
 - [x] CHANGELOG.md
 - [x] `cargo publish --dry-run` in dependency order (subcrates, then umbrella)
 
-## Published
+## Published (0.1.0)
 
 - [x] `who-fic-icd` 0.1.0 — https://crates.io/crates/who-fic-icd
 - [x] `who-fic-icf` 0.1.0 — https://crates.io/crates/who-fic-icf
 - [x] `who-fic-ichi` 0.1.0 — https://crates.io/crates/who-fic-ichi
 - [x] `who-fic` 0.1.0 — https://crates.io/crates/who-fic
 
+## Phase 7 — Data loading (`who-fic-linearization`, `who-fic-claml`)
+
+See [specs/who-fic-linearization.md](specs/who-fic-linearization.md) and
+[specs/who-fic-claml.md](specs/who-fic-claml.md). Formats verified against
+real WHO downloads on 2026-08-03 (see those specs' "verified" notes).
+
+### `who-fic-linearization` (new crate)
+
+- [x] `LinearizationRow` type with typed accessors for all 13 common
+      columns plus the 5 MMS-only `Grouping` columns
+- [x] `LinearizationReader<R: Read>` — streaming row iterator, BOM
+      stripped, tolerant of short trailing-column lines and mixed
+      quoted/bare fields
+- [x] `LinearizationError` — `std::error::Error`, reports 1-based line
+      number of malformed rows
+- [x] `serde` feature
+- [x] Tests against hand-written fixtures (not vendored WHO exports) per
+      spec's test list
+
+### `who-fic-claml` (new crate)
+
+- [x] `ClamlDocument`/`Class`/`Rubric`/`Label`/`ModifierClass`/`Modifier`
+      types per spec
+- [x] Parser built on `quick-xml` (the one documented dependency exception
+      in the workspace — see specs/architecture.md)
+- [x] `Class::preferred_label(lang)` convenience accessor
+- [x] `ClamlError` wrapping XML parse errors plus structural problems
+      (e.g. `Class` missing `code`)
+- [x] `serde` feature
+- [x] Tests against a hand-written fixture (not a vendored WHO ICD-10
+      export) per spec's test list
+
+### Classification-crate adapters
+
+- [x] `who-fic-icd`: `icd10::claml` module (feature `claml`, dep on
+      `who-fic-claml`) — `Icd10ClamlIndex`
+- [x] `who-fic-icd`: `icd11::linearization` module (feature
+      `linearization`, dep on `who-fic-linearization`) —
+      `Icd11LinearizationIndex`
+- [x] `who-fic-icf`: `linearization` module (feature `linearization`) —
+      `IcfLinearizationIndex`
+- [x] `who-fic-ichi`: `linearization` module (feature `linearization`) —
+      `IchiLinearizationIndex`
+- [x] Each adapter: tests using small hand-written `LinearizationRow`/
+      `ClamlDocument` fixtures built from real column/element shapes,
+      mapped through to the classification's typed code
+
+### Integration & release
+
+- [x] Add both new crates to the workspace, `cargo build`/`test`/`clippy`/
+      `fmt` clean across the whole workspace
+- [x] Bump `who-fic-icd`, `who-fic-icf`, `who-fic-ichi`, `who-fic` to 0.2.0
+      (new public API, backward compatible — semver minor)
+- [x] Update CHANGELOG.md
+- [x] `cargo publish --dry-run` for `who-fic-linearization` and
+      `who-fic-claml`, then the four 0.2.0 bumps, in dependency order
+- [ ] Publish all six crates; push to git remotes
+
 ## Backlog / future subcrates (not scheduled)
 
 - [ ] `who-fic-icd-api`: WHO ICD-API client (OAuth2 client-credentials,
       entity lookup, search)
-- [ ] Data loaders for user-supplied official WHO exports
-      (`who-fic-*-data` crates)
 - [ ] Semantic cluster validation for ICD-11 postcoordination (needs WHO data)
 - [ ] Split `who-fic-icd` into `who-fic-icd-10` / `who-fic-icd-11` if the
       revisions grow enough to justify it

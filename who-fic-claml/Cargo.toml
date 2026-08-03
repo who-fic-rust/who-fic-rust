@@ -1,10 +1,10 @@
 [package]
-name = "who-fic-icf"
-description = "World Health Organization (WHO) International Classification of Functioning, Disability and Health (ICF)"
-keywords = ["who", "icf", "health", "disability", "functioning"]
+name = "who-fic-claml"
+description = "Parser for ClaML (ISO 13120), the XML format WHO distributes ICD-10 in"
+keywords = ["who", "icd10", "claml", "xml", "health"]
 categories = ["science", "parser-implementations"]
+version = "0.1.0"
 readme = "README.md"
-version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -12,13 +12,11 @@ repository.workspace = true
 authors.workspace = true
 
 [dependencies]
+quick-xml = "0.41.0"
 serde = { version = "1.0.229", features = ["derive"], optional = true }
-who-fic-linearization = { workspace = true, optional = true }
 
 [features]
 serde = ["dep:serde"]
-linearization = ["dep:who-fic-linearization"]
 
 [dev-dependencies]
-proptest = "1.11.0"
 serde_json = "1.0"

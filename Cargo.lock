@@ -163,6 +163,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
 
 [[package]]
+name = "quick-xml"
+version = "0.41.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e660451e55124f798a69a5af3f49ccfbefbd41910eefd25caf2393e1f3473ec1"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -362,7 +371,7 @@ dependencies = [
 
 [[package]]
 name = "who-fic"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde_json",
  "who-fic-icd",
@@ -371,25 +380,47 @@ dependencies = [
 ]
 
 [[package]]
-name = "who-fic-icd"
+name = "who-fic-claml"
 version = "0.1.0"
+dependencies = [
+ "quick-xml",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "who-fic-icd"
+version = "0.2.0"
 dependencies = [
  "proptest",
  "serde",
  "serde_json",
+ "who-fic-claml",
+ "who-fic-linearization",
 ]
 
 [[package]]
 name = "who-fic-icf"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "proptest",
  "serde",
  "serde_json",
+ "who-fic-linearization",
 ]
 
 [[package]]
 name = "who-fic-ichi"
+version = "0.2.0"
+dependencies = [
+ "proptest",
+ "serde",
+ "serde_json",
+ "who-fic-linearization",
+]
+
+[[package]]
+name = "who-fic-linearization"
 version = "0.1.0"
 dependencies = [
  "proptest",
