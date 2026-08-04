@@ -47,6 +47,10 @@ for result in LinearizationReader::from_str(tsv) {
 }
 ```
 
+More runnable examples in [`examples/`](examples): `stream_and_filter.rs`
+streams a multi-row export, tells chapter/block/category rows apart, and
+handles a malformed row without aborting the rest of the stream.
+
 ## License
 
 Licensed under either of [Apache License, Version 2.0](LICENSE-APACHE) or

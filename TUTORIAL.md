@@ -198,9 +198,12 @@ WHO_ICD_API_CLIENT_ID=... WHO_ICD_API_CLIENT_SECRET=... \
 - [specs/index.md](specs/index.md) — the full specification, one file per
   crate.
 - Each crate's own `README.md` — a shorter reference for that crate
-  alone.
-- [`who-fic-icd-api/examples/lookup_code.rs`](who-fic-icd-api/examples/lookup_code.rs)
-  and every crate's `examples/readme.rs` — runnable code, not just
-  snippets in a doc.
+  alone, and the fastest way to find its `examples/` directory (every
+  crate has more than one runnable example beyond what's shown here —
+  ICD-11 postcoordination clusters, ICF hierarchy walks, ICHI axis
+  composition, streaming a linearization export, walking ClaML hierarchy
+  by reference, searching the live API).
+- [FAQ.md](FAQ.md) — answers to specific "does this crate do X" questions
+  that don't fit a walkthrough.
 - [CONTRIBUTING.md](CONTRIBUTING.md) — if you want to change one of these
   crates rather than just use it.

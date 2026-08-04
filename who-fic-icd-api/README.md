@@ -63,6 +63,10 @@ WHO_ICD_API_CLIENT_ID=... WHO_ICD_API_CLIENT_SECRET=... \
     cargo run --example lookup_code -p who-fic-icd-api -- 1A00
 ```
 
+[`examples/search_and_traverse.rs`](examples/search_and_traverse.rs) covers
+two more operations: free-text `search`, and following an entity's
+`parent`/`child` URI lists to its neighbors.
+
 ## What this crate implements
 
 - OAuth2 client-credentials authentication, with automatic token caching

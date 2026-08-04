@@ -40,6 +40,10 @@ assert_eq!(code.action().as_str(), "DB");
 assert_eq!(code.means().as_str(), "AD");
 ```
 
+More runnable examples in [`examples/`](examples): `axis_composition.rs`
+shows building a code from typed `Target`/`Action`/`Means` values instead
+of parsing the dotted string.
+
 ## Features
 
 - `serde` — canonical-string `Serialize`/`Deserialize` for `IchiCode` and

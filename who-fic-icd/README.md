@@ -40,6 +40,9 @@ let code = Icd11Code::from_str("8B20").unwrap();
 assert!(code.chapter().is_some());
 ```
 
+More runnable examples in [`examples/`](examples): `postcoordination_cluster.rs`
+walks ICD-11 cluster syntax (`&`/`/`) in more depth.
+
 ## Features
 
 - `serde` — canonical-string `Serialize`/`Deserialize` for all code types.

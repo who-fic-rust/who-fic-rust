@@ -48,6 +48,9 @@ assert!(QualifiedIcfCode::from_str("e150+2").is_ok()); // facilitator
 assert!(QualifiedIcfCode::from_str("b280+2").is_err()); // facilitator marker invalid outside 'e'
 ```
 
+More runnable examples in [`examples/`](examples): `hierarchy_walk.rs`
+walks a code all the way up to its chapter, one level at a time.
+
 ## Features
 
 - `serde` — canonical-string `Serialize`/`Deserialize` for `IcfCode` and

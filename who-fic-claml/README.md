@@ -49,6 +49,10 @@ assert_eq!(class.code(), "A00");
 assert_eq!(class.preferred_label("en"), Some("Cholera"));
 ```
 
+More runnable examples in [`examples/`](examples): `walk_hierarchy.rs`
+builds a code → `Class` index and walks `SuperClass` references up to the
+chapter.
+
 ## License
 
 Licensed under either of [Apache License, Version 2.0](LICENSE-APACHE) or
