@@ -44,8 +44,13 @@ behavior specifically (a row/class that doesn't parse as that
 classification's code type must be silently excluded, not fail the whole
 build) versus the *fatal* behavior (a malformed underlying file/reader
 error must propagate). Both are meaningfully different code paths and
-both need their own test — conflating them was an actual bug shape caught
-during Phase 9 harmonization (see `AGENTS/lessons.md`).
+both need their own test — every existing adapter already does this
+correctly (see e.g. `skips_row_with_code_that_fails_to_parse_as_icd11` /
+`propagates_reader_errors` in `who-fic-icd/src/icd11.rs`), and new ones
+should match. What Phase 11 actually found wrong in the existing four was
+structural (map type, `iter()` shape — see `AGENTS/lessons.md`), not this
+distinction; it's called out here because it's easy to get wrong, not
+because it was.
 
 ## The network-calling crate (`who-fic-icd-api`)
 

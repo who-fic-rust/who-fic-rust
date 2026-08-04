@@ -2,8 +2,15 @@
 
 The actual sequence used to ship every version so far, including the
 parts that aren't obvious from just reading `Cargo.toml`. Written after
-doing this three times in one session (0.1.0 initial release, 0.2.0 +
-`who-fic-linearization`/`who-fic-claml` 0.1.0, `who-fic-icd-api` 0.1.0).
+doing this four times in one session: 0.1.0 initial release; 0.2.0 (new
+`claml`/`linearization` features) alongside new crates
+`who-fic-linearization`/`who-fic-claml` at 0.1.0; `who-fic-icd-api` 0.1.0;
+and 0.3.0 (a breaking API change, forced by fixing an inconsistency
+introduced across the first two rounds — see `AGENTS/lessons.md`)
+alongside `who-fic-linearization`/`who-fic-claml`/`who-fic-icd-api` 0.1.1.
+Check `tasks.md`'s "Published" sections for the exact current count and
+versions — this number will keep growing and isn't worth keeping literally
+current here.
 
 ## Prerequisites
 
@@ -27,8 +34,9 @@ Two independent tracks (see `specs/architecture.md`):
   bump `[workspace.package].version` in the root `Cargo.toml` — every
   crate inheriting `version.workspace = true` picks it up automatically.
   Also bump the matching `[workspace.dependencies]` version constraints
-  for these crates (`who-fic-icd = { version = "0.2.0", ... }` etc.), or
-  the workspace won't resolve.
+  for these crates (each has a line like `who-fic-icd = { version =
+  "...", path = "who-fic-icd" }` — update the `version` string to match),
+  or the workspace won't resolve.
 - **Independent** (`who-fic-linearization`, `who-fic-claml`,
   `who-fic-icd-api`): each has its own `version = "..."` set directly in
   its own `Cargo.toml` (not `.workspace = true`), bumped individually.
@@ -37,9 +45,22 @@ Two independent tracks (see `specs/architecture.md`):
 
 New backward-compatible public API → minor bump (0.1.0 → 0.2.0 is what
 happened when Phase 7 added the `claml`/`linearization` features to the
-four lockstep crates). Breaking changes → this project hasn't shipped one
-yet; if you're about to, stop and consider whether `cargo-semver-checks`
-(installed, unused so far) should gate it first.
+four lockstep crates). Breaking change → *also* a minor bump, since these
+are all pre-1.0 crates (0.2.0 → 0.3.0 is what happened in Phase 12, when
+Phase 11's `Index` harmonization changed two crates' `iter()` return
+type). Verify with `cargo-semver-checks` before deciding the bump, not
+after — it's installed (`cargo install cargo-semver-checks` if it isn't):
+
+```sh
+cargo semver-checks check-release -p <crate> --baseline-version <last-published-version>
+```
+
+For a pre-1.0 crate, a `y` bump (`0.2.0` → `0.3.0`) is itself sufficient
+permission for a breaking change — the tool will report "major change,"
+skip its detailed lints, and say "no semver update required," which
+means *the bump you already chose already covers whatever changed*, not
+that nothing changed. Don't take a clean report as license to skip
+picking the bump correctly by hand first.
 
 ## The chicken-and-egg publish ordering
 

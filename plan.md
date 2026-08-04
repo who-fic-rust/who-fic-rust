@@ -25,11 +25,12 @@ validate, format, and navigate WHO-FIC classification codes:
   user-supplied credentials.
 
 Further subcrates are created as needed using the parent crate's name as a
-prefix; see "Future subcrates" below. Status: Phases 0–6 shipped as
-`who-fic`/`who-fic-icd`/`who-fic-icf`/`who-fic-ichi` 0.1.0, Phase 7 (data
-loading) shipped as those same four crates at 0.2.0 plus new crates
-`who-fic-linearization`/`who-fic-claml` 0.1.0, and Phase 8 (`who-fic-icd-api`)
-is in progress — see tasks.md. All on crates.io.
+prefix; see "Future subcrates" below. Status: all 12 phases shipped, all
+seven crates on crates.io. Current versions: `who-fic`/`who-fic-icd`/
+`who-fic-icf`/`who-fic-ichi` at 0.3.0 (lockstep); `who-fic-linearization`/
+`who-fic-claml`/`who-fic-icd-api` at 0.1.1 (independent). Full detail on
+every phase in [tasks.md](tasks.md); the summary below covers each
+phase's *what and why*, tasks.md covers *what's checked off*.
 
 ## Background
 
@@ -165,6 +166,43 @@ code resolution (including postcoordination axis breakdown via
 workspace with network calls, user-supplied credentials, and a
 non-dependency-free dependency set (`reqwest`, `tokio`) — all documented
 exceptions to the workspace norms in specs/architecture.md.
+
+### Phase 9 — Hardening
+Discovered and fixed CI, which had been silently failing on every push
+since the first commit (`who-fic/examples/readme.rs` broke under
+`cargo test --workspace --no-default-features`, which nobody had actually
+run against CI before this phase). Also fixed an example-target-name
+collision warning across all six crates' identically-named
+`examples/readme.rs`, closed a `#![warn(missing_docs)]` enforcement gap on
+three of seven crates, added crates.io/docs.rs/CI/license badges to every
+README, and rewrote the root README from a 6-line stub into a workspace
+index.
+
+### Phase 10 — Dependency auditing, repo hygiene, dogfooding example
+`cargo audit` (0 vulnerabilities) and `cargo deny` (license allow-list
+matched to what's actually in the dependency tree) wired into CI as
+permanent jobs. `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, GitHub issue/PR
+templates. `who-fic-icd-api/examples/lookup_code.rs`, a runnable example
+chaining offline code parsing (`who-fic-icd`) with a live lookup
+(`who-fic-icd-api`).
+
+### Phase 11 — Cross-crate harmonization, agent docs, tutorial
+Audited the four data-loading `*Index` types (built independently by
+separate agents across Phases 7–8) side by side and found real drift:
+mixed `HashMap`/`BTreeMap`, inconsistent `iter()`/`IntoIterator` shapes.
+Harmonized all four and documented the shared shape once in
+`specs/architecture.md` instead of four times. Full `specs/*.md`
+reconciliation pass (`architecture.md` had drifted significantly). Added
+`AGENTS.md`/`CLAUDE.md`/`AGENTS/*.md` for AI coding agents working in this
+repository, and `TUTORIAL.md`, a guided walkthrough of all seven crates
+with every snippet verified to actually compile.
+
+### Phase 12 — Version bump and republish
+Phase 11's `Index` harmonization was a breaking change to the
+already-published 0.2.0 (`iter()`'s item type changed on two crates).
+Pre-1.0 semver: breaking change bumps minor. Bumped the lockstep group to
+0.3.0 and the three independent crates to 0.1.1 (non-breaking additions
+only), republished all seven.
 
 ## Future subcrates (create when needed, not up front)
 

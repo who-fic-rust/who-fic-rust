@@ -19,7 +19,7 @@ workspace. Each classification is available directly as its own crate too
 
 ```toml
 [dependencies]
-who-fic = "0.2"
+who-fic = "0.3"
 ```
 
 Each classification is behind a same-named feature, all enabled by
@@ -28,7 +28,7 @@ need to trim dependencies:
 
 ```toml
 [dependencies]
-who-fic = { version = "0.2", default-features = false, features = ["icd"] }
+who-fic = { version = "0.3", default-features = false, features = ["icd"] }
 ```
 
 ## Example

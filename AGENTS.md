@@ -54,7 +54,7 @@ The workflow this repository follows, and that you should follow:
 4. **This has already gone wrong once** — see `AGENTS/lessons.md` for the
    concrete case (four data-loading `Index` types built independently by
    different agents drifted from each other because no single agent had
-   read all four; harmonized in Phase 9, now documented once in
+   read all four; harmonized in Phase 11, now documented once in
    `specs/architecture.md` instead of four times).
 
 ## Build, test, lint

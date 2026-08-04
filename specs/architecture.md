@@ -22,11 +22,15 @@ repository, authors, rust-version) and each crate inherits it with
 Two version tracks:
 
 - **Lockstep**: `who-fic`, `who-fic-icd`, `who-fic-icf`, `who-fic-ichi`
-  version together (currently 0.2.0) — they shipped together in Phase 0-1
-  and gained new features together in Phase 7, so they bump together.
-- **Independent**: `who-fic-linearization`, `who-fic-claml` (0.1.0),
-  `who-fic-icd-api` (0.1.0) — added later (Phases 7-8), each versions on
-  its own schedule since they have their own release cadence.
+  version together (currently 0.3.0) — they shipped together in Phase 0-1,
+  gained new features together in Phase 7, and took a breaking change
+  together in Phase 11/12, so they bump together. Check
+  `[workspace.package].version` in the root `Cargo.toml` for the exact
+  current value rather than trusting this number to stay current here.
+- **Independent**: `who-fic-linearization`, `who-fic-claml`,
+  `who-fic-icd-api` (currently 0.1.1 each) — added later (Phases 7-8), each
+  versions on its own schedule since they have their own release cadence.
+  Check each crate's own `Cargo.toml` for its exact current value.
 
 - Edition: 2024
 - License: MIT OR Apache-2.0 (code only; see "Licensing" below)
@@ -99,7 +103,7 @@ classification's typed code. All four follow one shared shape:
   A malformed *source file* (the underlying reader/parser itself erroring)
   *is* a build failure, propagated through that crate's own `*Error` type.
 
-This shape was harmonized across all four in Phase 9 hardening — the four
+This shape was harmonized across all four in Phase 11 — the four
 were originally built independently and drifted (mixed `HashMap`/`BTreeMap`,
 mixed tuple-vs-entry `iter()`, inconsistent `IntoIterator` presence) since
 no single agent saw all four at once. If you add a fifth data-loading
