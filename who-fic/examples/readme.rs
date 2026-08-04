@@ -1,6 +1,7 @@
-use std::str::FromStr;
+#[cfg(all(feature = "icd", feature = "icf", feature = "ichi"))]
+fn run() {
+    use std::str::FromStr;
 
-fn main() {
     let code = who_fic::icd::icd11::Icd11Code::from_str("8B20").unwrap();
     assert_eq!(code.as_str(), "8B20");
 
@@ -11,4 +12,11 @@ fn main() {
     assert_eq!(code.target().as_str(), "KAB");
 
     println!("ok");
+}
+
+#[cfg(not(all(feature = "icd", feature = "icf", feature = "ichi")))]
+fn run() {}
+
+fn main() {
+    run();
 }

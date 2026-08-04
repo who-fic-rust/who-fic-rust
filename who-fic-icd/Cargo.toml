@@ -21,6 +21,10 @@ serde = ["dep:serde"]
 claml = ["dep:who-fic-claml"]
 linearization = ["dep:who-fic-linearization"]
 
+[[example]]
+name = "who-fic-icd-readme"
+path = "examples/readme.rs"
+
 [dev-dependencies]
 proptest = "1.11.0"
 serde_json = "1.0"

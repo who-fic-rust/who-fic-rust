@@ -18,5 +18,9 @@ serde = { version = "1.0.229", features = ["derive"], optional = true }
 [features]
 serde = ["dep:serde"]
 
+[[example]]
+name = "who-fic-claml-readme"
+path = "examples/readme.rs"
+
 [dev-dependencies]
 serde_json = "1.0"

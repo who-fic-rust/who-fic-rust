@@ -19,6 +19,10 @@ who-fic-linearization = { workspace = true, optional = true }
 serde = ["dep:serde"]
 linearization = ["dep:who-fic-linearization"]
 
+[[example]]
+name = "who-fic-icf-readme"
+path = "examples/readme.rs"
+
 [dev-dependencies]
 proptest = "1.11.0"
 serde_json = "1.0"

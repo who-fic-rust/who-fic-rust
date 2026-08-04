@@ -25,5 +25,9 @@ who-fic-icd = { workspace = true, optional = true }
 who-fic-icf = { workspace = true, optional = true }
 who-fic-ichi = { workspace = true, optional = true }
 
+[[example]]
+name = "who-fic-readme"
+path = "examples/readme.rs"
+
 [dev-dependencies]
 serde_json = "1.0.151"
