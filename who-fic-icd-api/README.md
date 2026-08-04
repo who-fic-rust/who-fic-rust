@@ -46,6 +46,15 @@ println!("{}", info.id);
 (This example needs real WHO ICD-API credentials and network access, so
 it isn't run as part of this README's tests.)
 
+For a runnable version chaining this crate with `who-fic-icd` — parse a
+code offline, then resolve it live — see
+[`examples/lookup_code.rs`](examples/lookup_code.rs):
+
+```sh
+WHO_ICD_API_CLIENT_ID=... WHO_ICD_API_CLIENT_SECRET=... \
+    cargo run --example lookup_code -p who-fic-icd-api -- 1A00
+```
+
 ## What this crate implements
 
 - OAuth2 client-credentials authentication, with automatic token caching

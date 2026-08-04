@@ -236,6 +236,22 @@ commit — this phase found and fixed that, plus a few other rough edges.
       strategy), except `who-fic-ichi/src/extension.rs`, which is a
       documentation-only stub by design
 
+## Phase 10 — Dependency auditing, repo hygiene, dogfooding example (2026-08-04)
+
+- [x] `cargo audit`: 0 vulnerabilities across 213 dependencies
+- [x] `cargo deny` (`deny.toml` added): populated the license allow-list
+      (MIT, Apache-2.0, ISC, BSD-3-Clause, Unicode-3.0, CC0-1.0, MIT-0,
+      Unlicense, CDLA-Permissive-2.0 — everything actually in the tree,
+      nothing extra); advisories/bans/licenses/sources all pass clean
+- [x] Wired both into CI as new `audit`/`deny` jobs so this runs on every
+      push/PR, not just once locally
+- [x] `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1),
+      GitHub issue templates (bug report, feature request), PR template
+- [x] Dogfooding example: `who-fic-icd-api/examples/lookup_code.rs` chains
+      `who-fic-icd` (offline parse + chapter lookup) with
+      `who-fic-icd-api` (live WHO lookup) — the two crates' intended
+      division of labor in one runnable example
+
 ## Backlog / future subcrates (not scheduled)
 
 - [ ] Semantic cluster validation for ICD-11 postcoordination (needs WHO data)
