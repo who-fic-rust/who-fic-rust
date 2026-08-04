@@ -19,6 +19,13 @@ This crate parses XML the *user* supplies (obtained under WHO's or the
 relevant maintainer's own terms) — it does not fetch, bundle, or embed
 classification content.
 
+## Install
+
+```toml
+[dependencies]
+who-fic-claml = "0.1"
+```
+
 ## Example
 
 ```rust

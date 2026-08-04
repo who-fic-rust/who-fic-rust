@@ -21,6 +21,13 @@ details may change before final adoption.
 Every ICHI intervention code is built from three axes — Target, Action,
 Means — combined as `TARGET.ACTION.MEANS`, e.g. `KAB.DB.AD`.
 
+## Install
+
+```toml
+[dependencies]
+who-fic-ichi = "0.3"
+```
+
 ## Example
 
 ```rust

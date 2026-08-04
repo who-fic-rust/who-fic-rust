@@ -24,6 +24,14 @@ Endpoint paths, headers, and the OAuth2 flow are verified directly against
 WHO's own OpenAPI spec (`https://id.who.int/swagger/v2/swagger.json`); see
 `specs/who-fic-icd-api.md` in the repository for the full reference.
 
+## Install
+
+```toml
+[dependencies]
+who-fic-icd-api = "0.1"
+who-fic-icd = "0.3"   # for typed codes, e.g. Icd11Code
+```
+
 ## Example
 
 ```rust,no_run
@@ -67,9 +75,9 @@ WHO_ICD_API_CLIENT_ID=... WHO_ICD_API_CLIENT_SECRET=... \
 - `icd10_category` / `icd10_category_typed` — ICD-10 category lookup by
   code.
 
-See `specs/who-fic-icd-api.md` for what's deliberately out of scope in
-this first release (autocode, describe, lookup, POST search, and a few
-other endpoints WHO's API exposes).
+See `specs/who-fic-icd-api.md` for what's deliberately out of scope so far
+(autocode, describe, lookup, POST search, and a few other endpoints WHO's
+API exposes).
 
 ## Testing without WHO credentials
 

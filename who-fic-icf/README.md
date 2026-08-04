@@ -20,6 +20,13 @@ crate makes the ICF's qualifier structure — which differs per component,
 including the environmental barrier vs. facilitator distinction — a
 compile-time-enforced part of the type system.
 
+## Install
+
+```toml
+[dependencies]
+who-fic-icf = "0.3"
+```
+
 ## Example
 
 ```rust

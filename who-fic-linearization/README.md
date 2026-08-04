@@ -25,6 +25,13 @@ This crate parses a file the *user* supplies (downloaded from
 `icd.who.int/dev11/downloads` under WHO's own terms) — it does not fetch,
 bundle, or embed WHO's classification content.
 
+## Install
+
+```toml
+[dependencies]
+who-fic-linearization = "0.1"
+```
+
 ## Example
 
 ```rust

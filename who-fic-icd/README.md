@@ -18,6 +18,13 @@ formatting, chapter lookup, ICD-11 extension codes and postcoordination
 cluster syntax. It does not vendor WHO's classification content (titles,
 descriptions); see the crate's rustdoc for details.
 
+## Install
+
+```toml
+[dependencies]
+who-fic-icd = "0.3"
+```
+
 ## Example
 
 ```rust
