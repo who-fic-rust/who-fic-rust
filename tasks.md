@@ -181,10 +181,29 @@ real WHO downloads on 2026-08-03 (see those specs' "verified" notes).
 - [x] `who-fic-ichi` 0.2.0 — https://crates.io/crates/who-fic-ichi
 - [x] `who-fic` 0.2.0 — https://crates.io/crates/who-fic
 
+## Phase 8 — `who-fic-icd-api`
+
+See [specs/who-fic-icd-api.md](specs/who-fic-icd-api.md). Endpoints and
+auth flow verified against WHO's own OpenAPI spec
+(`https://id.who.int/swagger/v2/swagger.json`) on 2026-08-04.
+
+- [x] `IcdApiClient`/`IcdApiClientBuilder` with configurable token/API base
+      URLs (testability hook)
+- [x] OAuth2 client-credentials token fetch + in-memory cache + refresh
+- [x] `entity`, `entity_search`, `linearization_entity`, `code_info`,
+      `search`, `icd10_category` methods
+- [x] `Entity`/`CodeInfo`/`SearchResults`/`Icd10Entity` response types,
+      permissive deserialization
+- [x] `IcdApiError` (`#[non_exhaustive]`): `Auth`/`Http`/`Status`/`Decode`
+- [x] Typed-code convenience for `Icd10Code`/`Icd11Code`
+      (`code_info_typed`/`icd10_category_typed`)
+- [x] Tests against a local `wiremock` server (no live WHO credentials
+      available to this workspace)
+- [x] README + rustdoc examples
+- [x] `cargo publish --dry-run`, then publish; push to git remotes
+
 ## Backlog / future subcrates (not scheduled)
 
-- [ ] `who-fic-icd-api`: WHO ICD-API client (OAuth2 client-credentials,
-      entity lookup, search)
 - [ ] Semantic cluster validation for ICD-11 postcoordination (needs WHO data)
 - [ ] Split `who-fic-icd` into `who-fic-icd-10` / `who-fic-icd-11` if the
       revisions grow enough to justify it

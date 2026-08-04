@@ -85,13 +85,18 @@ Umbrella crate `who-fic`:
   hand-written matchers are faster to compile, dependency-free, and give
   better error positions.
 - Dev-dependencies may include `proptest` for property tests.
-- Heavier dependencies (HTTP, async, file formats) only in future subcrates
-  — with one deliberate exception: `who-fic-claml` depends on `quick-xml`,
-  because general XML parsing is not a good fit for a hand-written matcher
-  the way the small fixed-grammar codes elsewhere in this workspace are.
-  This is documented here so it doesn't look like drift from the
-  zero-dependency norm — it's a one-crate, one-dependency exception, not a
-  change to the norm itself.
+- Heavier dependencies (HTTP, async, file formats) only in crates whose
+  entire purpose requires them — documented here so they don't look like
+  drift from the zero-dependency norm elsewhere:
+  - `who-fic-claml` depends on `quick-xml`, because general XML parsing is
+    not a good fit for a hand-written matcher the way the small
+    fixed-grammar codes elsewhere in this workspace are.
+  - `who-fic-icd-api` depends on `reqwest` (async, `rustls` TLS backend —
+    no OpenSSL/system-TLS dependency) and `tokio` (the `sync` feature
+    only, for the token cache's `Mutex`; it does not bundle a runtime —
+    callers supply their own), because it is the one crate in the
+    workspace whose job is making real HTTP calls to WHO's live API. No
+    other crate needs, or should reach for, these dependencies.
 
 ## Testing
 

@@ -21,6 +21,8 @@ and [tasks.md](../tasks.md) for the task breakdown.
   ICHI exports)
 - [who-fic-claml.md](who-fic-claml.md) — parser for ClaML (ISO 13120), the
   XML format WHO distributes ICD-10 in
+- [who-fic-icd-api.md](who-fic-icd-api.md) — async client for the live WHO
+  ICD-API (`id.who.int`)
 
 ## Relationship to the seed specs
 

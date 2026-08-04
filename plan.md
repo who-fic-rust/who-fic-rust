@@ -19,11 +19,17 @@ validate, format, and navigate WHO-FIC classification codes:
   `who-fic-icd`'s `icd11` module, `who-fic-icf`, and `who-fic-ichi`).
 - `who-fic-claml` — parser for ClaML (ISO 13120), the XML format WHO
   distributes ICD-10 in (feeds `who-fic-icd`'s `icd10` module).
+- `who-fic-icd-api` — async client for the live WHO ICD-API (`id.who.int`):
+  OAuth2 client-credentials auth, entity lookup, code resolution, search.
+  The one crate in the workspace that makes network calls and requires
+  user-supplied credentials.
 
 Further subcrates are created as needed using the parent crate's name as a
-prefix (e.g. `who-fic-icd-api`); see "Future subcrates" below. Status:
-Phases 0–6 shipped as `who-fic`/`who-fic-icd`/`who-fic-icf`/`who-fic-ichi`
-0.1.0 on crates.io; Phase 7 (data loading) is in progress — see tasks.md.
+prefix; see "Future subcrates" below. Status: Phases 0–6 shipped as
+`who-fic`/`who-fic-icd`/`who-fic-icf`/`who-fic-ichi` 0.1.0, Phase 7 (data
+loading) shipped as those same four crates at 0.2.0 plus new crates
+`who-fic-linearization`/`who-fic-claml` 0.1.0, and Phase 8 (`who-fic-icd-api`)
+is in progress — see tasks.md. All on crates.io.
 
 ## Background
 
@@ -150,10 +156,18 @@ codes plus title lookup. Supersedes the original, less-informed
 ICD-11/ICF/ICHI share one export format made two shared parser crates a
 better fit than N per-classification data crates.
 
+### Phase 8 — `who-fic-icd-api`
+Async client for the live WHO ICD-API, verified against WHO's own OpenAPI
+spec (`id.who.int/swagger/v2/swagger.json`): OAuth2 client-credentials auth
+with token caching/refresh, Foundation and linearization entity lookup,
+code resolution (including postcoordination axis breakdown via
+`codeinfo`), search, ICD-10 category lookup. The one crate in the
+workspace with network calls, user-supplied credentials, and a
+non-dependency-free dependency set (`reqwest`, `tokio`) — all documented
+exceptions to the workspace norms in specs/architecture.md.
+
 ## Future subcrates (create when needed, not up front)
 
-- `who-fic-icd-api` — client for the WHO ICD-API (`id.who.int`, OAuth2
-  client-credentials), async, `reqwest`-based.
 - `who-fic-icd-10` / `who-fic-icd-11` — split out only if the revisions grow
   enough (data loaders, per-revision tooling) to justify separate crates;
   until then they are modules `icd10`/`icd11` inside `who-fic-icd`.

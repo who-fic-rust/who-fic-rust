@@ -7,6 +7,7 @@ members = [
     "who-fic-ichi",
     "who-fic-linearization",
     "who-fic-claml",
+    "who-fic-icd-api",
 ]
 
 [workspace.package]

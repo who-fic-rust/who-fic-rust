@@ -6,10 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The four original crates (`who-fic`, `who-fic-icd`, `who-fic-icf`,
 `who-fic-ichi`) version together (lockstep versioning).
-`who-fic-linearization` and `who-fic-claml` are newer crates with their own
-independent version.
+`who-fic-linearization`, `who-fic-claml`, and `who-fic-icd-api` are newer
+crates with their own independent version.
 
 ## [Unreleased]
+
+## who-fic-icd-api [0.1.0] - 2026-08-04
+
+Initial release: an async client for the live WHO ICD-API (`id.who.int`),
+the one crate in this workspace that makes network calls and requires
+user-supplied credentials. Endpoints and the OAuth2 flow verified directly
+against WHO's own OpenAPI spec.
+
+### Added
+
+- `IcdApiClient` / `IcdApiClientBuilder`: OAuth2 client-credentials
+  authentication with automatic token caching and refresh; configurable
+  token/API base URLs for testing against a local mock server.
+- `entity` / `entity_search` (ICD-11 Foundation), `linearization_entity` /
+  `search` (a specific linearization such as MMS), `code_info` /
+  `code_info_typed` (resolve a code to its entity and postcoordination
+  axis breakdown), `icd10_category` / `icd10_category_typed`.
+- `Entity`, `CodeInfo`, `SearchResults`, `Icd10Entity` response types with
+  permissive deserialization.
+- `IcdApiError` (`#[non_exhaustive]`).
 
 ## who-fic / who-fic-icd / who-fic-icf / who-fic-ichi [0.2.0] - 2026-08-03
 
