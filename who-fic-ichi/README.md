@@ -1,5 +1,10 @@
 # who-fic-ichi
 
+[![crates.io](https://img.shields.io/crates/v/who-fic-ichi.svg)](https://crates.io/crates/who-fic-ichi)
+[![docs.rs](https://img.shields.io/docsrs/who-fic-ichi)](https://docs.rs/who-fic-ichi)
+[![CI](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml)
+[![license](https://img.shields.io/crates/l/who-fic-ichi.svg)](#license)
+
 World Health Organization (WHO) [International Classification of Health
 Interventions
 (ICHI)](https://www.who.int/standards/classifications/international-classification-of-health-interventions)

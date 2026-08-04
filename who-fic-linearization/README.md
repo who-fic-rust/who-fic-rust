@@ -1,5 +1,10 @@
 # who-fic-linearization
 
+[![crates.io](https://img.shields.io/crates/v/who-fic-linearization.svg)](https://crates.io/crates/who-fic-linearization)
+[![docs.rs](https://img.shields.io/docsrs/who-fic-linearization)](https://docs.rs/who-fic-linearization)
+[![CI](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml)
+[![license](https://img.shields.io/crates/l/who-fic-linearization.svg)](#license)
+
 A parser for WHO's **Simplified Linearization Output** format: the
 tab-separated export WHO's ICD-11 Maintenance Platform
 (`icd.who.int/dev11/downloads`) produces for ICD-11 (MMS), ICF, and ICHI.

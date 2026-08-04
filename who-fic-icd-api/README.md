@@ -1,5 +1,10 @@
 # who-fic-icd-api
 
+[![crates.io](https://img.shields.io/crates/v/who-fic-icd-api.svg)](https://crates.io/crates/who-fic-icd-api)
+[![docs.rs](https://img.shields.io/docsrs/who-fic-icd-api)](https://docs.rs/who-fic-icd-api)
+[![CI](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml)
+[![license](https://img.shields.io/crates/l/who-fic-icd-api.svg)](#license)
+
 An async client for the World Health Organization (WHO)
 [ICD-API](https://icd.who.int/icdapi) (`id.who.int`) — the live web
 service WHO runs for looking up and searching ICD-10 and ICD-11 entities.

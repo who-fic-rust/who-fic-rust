@@ -1,5 +1,10 @@
 # who-fic
 
+[![crates.io](https://img.shields.io/crates/v/who-fic.svg)](https://crates.io/crates/who-fic)
+[![docs.rs](https://img.shields.io/docsrs/who-fic)](https://docs.rs/who-fic)
+[![CI](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml)
+[![license](https://img.shields.io/crates/l/who-fic.svg)](#license)
+
 World Health Organization (WHO) Family of International Classifications
 (FIC) for Rust: [ICD](https://crates.io/crates/who-fic-icd),
 [ICF](https://crates.io/crates/who-fic-icf), and

@@ -1,5 +1,10 @@
 # who-fic-icf
 
+[![crates.io](https://img.shields.io/crates/v/who-fic-icf.svg)](https://crates.io/crates/who-fic-icf)
+[![docs.rs](https://img.shields.io/docsrs/who-fic-icf)](https://docs.rs/who-fic-icf)
+[![CI](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml)
+[![license](https://img.shields.io/crates/l/who-fic-icf.svg)](#license)
+
 World Health Organization (WHO) [International Classification of
 Functioning, Disability and Health
 (ICF)](https://www.who.int/standards/classifications/international-classification-of-functioning-disability-and-health)

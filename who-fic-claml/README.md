@@ -1,5 +1,10 @@
 # who-fic-claml
 
+[![crates.io](https://img.shields.io/crates/v/who-fic-claml.svg)](https://crates.io/crates/who-fic-claml)
+[![docs.rs](https://img.shields.io/docsrs/who-fic-claml)](https://docs.rs/who-fic-claml)
+[![CI](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml)
+[![license](https://img.shields.io/crates/l/who-fic-claml.svg)](#license)
+
 A parser for **ClaML** (Classification Markup Language), the XML format
 standardized as ISO 13120 for exchanging healthcare classification
 systems. WHO distributes ICD-10 in ClaML.
