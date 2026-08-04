@@ -252,6 +252,37 @@ commit — this phase found and fixed that, plus a few other rough edges.
       `who-fic-icd-api` (live WHO lookup) — the two crates' intended
       division of labor in one runnable example
 
+## Phase 11 — Cross-crate harmonization, agent docs, tutorial (2026-08-04)
+
+- [x] Audited all four data-loading `*Index` types side by side (they'd
+      been built independently by different agents) and harmonized:
+      `BTreeMap`-backed (was 3× `HashMap` + 1× `BTreeMap`), `ClassEntry`
+      always carries `code()` (was missing on 2 of 4), `iter()`/
+      `IntoIterator` yield entries in ascending code order everywhere
+      (was inconsistent tuple-vs-entry, and `IntoIterator` missing on 3
+      of 4) — documented once as a shared convention in
+      `specs/architecture.md` instead of four times
+- [x] Full `specs/*.md` reconciliation pass: `architecture.md` had drifted
+      significantly (stale workspace member list, "Phase 6" framing for
+      long-shipped work, no mention of the three newer crates,
+      `missing_docs`, `deny.toml`, or the `audit`/`deny` CI jobs) and got
+      a comprehensive rewrite; `who-fic-icd-api.md`'s method list was
+      missing `entity_search`
+- [x] Dependency versions checked current (`cargo update --dry-run`): all
+      pinned versions already latest, nothing to bump
+- [x] `AGENTS.md` (root, canonical) + `CLAUDE.md` (imports it via
+      `@AGENTS.md`) + `AGENTS/release.md` / `AGENTS/testing.md` /
+      `AGENTS/lessons.md` — operational guides for AI coding agents,
+      capturing real incidents from this project's development (the
+      silently-failing-CI gotcha, the publish dependency-ordering
+      chicken-and-egg, the Index-type drift) rather than restating specs
+- [x] `TUTORIAL.md` — guided walkthrough tying all seven crates together;
+      every code snippet verified to actually compile against the real
+      APIs (extracted into scratch examples, built, deleted) before
+      being committed
+- [x] `specs/index.md` and root `README.md` updated to cross-link the new
+      docs
+
 ## Backlog / future subcrates (not scheduled)
 
 - [ ] Semantic cluster validation for ICD-11 postcoordination (needs WHO data)

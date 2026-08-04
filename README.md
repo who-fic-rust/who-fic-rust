@@ -31,10 +31,17 @@ never vendored by these crates — see
 
 ## Documentation
 
+- **New here? Start with [TUTORIAL.md](TUTORIAL.md)** — a guided
+  walkthrough of all seven crates, code parsing through the live API
+  client.
 - [plan.md](plan.md) — project goals, design principles, architecture
 - [tasks.md](tasks.md) — task breakdown and what's shipped
-- [specs/](specs/index.md) — detailed per-crate specifications
+- [specs/](specs/index.md) — detailed per-crate specifications (the
+  single source of truth for documented behavior)
 - [CHANGELOG.md](CHANGELOG.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md) — for contributors
+- [AGENTS.md](AGENTS.md) (or [CLAUDE.md](CLAUDE.md)) — for AI coding
+  agents working in this repository
 
 ## License
 

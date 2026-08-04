@@ -4,6 +4,16 @@ Detailed specifications for the WHO Family of International Classifications
 (FIC) Rust workspace. Read [plan.md](../plan.md) first for the overall plan
 and [tasks.md](../tasks.md) for the task breakdown.
 
+**These files are the single source of truth for documented behavior.**
+Implementation changes and spec changes land together — see
+[AGENTS.md](../AGENTS.md) (or [CLAUDE.md](../CLAUDE.md), which imports it)
+for the workflow this repository follows and for operational guides
+([AGENTS/release.md](../AGENTS/release.md),
+[AGENTS/testing.md](../AGENTS/testing.md),
+[AGENTS/lessons.md](../AGENTS/lessons.md)) that sit alongside these specs
+without duplicating them. New to the crates as a *user* rather than a
+contributor? Start with [TUTORIAL.md](../TUTORIAL.md) instead.
+
 ## Spec map
 
 - [architecture.md](architecture.md) — workspace layout, crate conventions,
