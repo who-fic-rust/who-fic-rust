@@ -11,6 +11,31 @@ crates with their own independent version.
 
 ## [Unreleased]
 
+## who-fic / who-fic-icd / who-fic-icf / who-fic-ichi [0.3.0] - 2026-08-04
+
+### Changed
+
+- **Breaking** (`who-fic-icf`, `who-fic-ichi`): `IcfLinearizationIndex`/
+  `IchiLinearizationIndex`'s `iter()` and `impl IntoIterator for &Index`
+  now yield `&ClassEntry` (which carries its own new `code()` accessor)
+  instead of `(&Code, &ClassEntry)` tuples — harmonizing with
+  `who-fic-icd`'s two data-loading indexes, which already had this shape.
+  See `specs/architecture.md`'s "Data-loading index conventions".
+- All four data-loading `*Index` types are now `BTreeMap`-backed (were a
+  mix of `HashMap`/`BTreeMap`), giving deterministic ascending-code-order
+  iteration everywhere. `who-fic-icd`'s two indexes additionally gained
+  `impl IntoIterator for &Index` (previously only `who-fic-icf` had it).
+
+## who-fic-linearization / who-fic-claml [0.1.1] - 2026-08-04
+
+Non-breaking: fixes an example-target-name collision when built alongside
+sibling crates in the workspace; no public API changes.
+
+## who-fic-icd-api [0.1.1] - 2026-08-04
+
+Non-breaking: adds `examples/lookup_code.rs`, a runnable example chaining
+this crate with `who-fic-icd`; no public API changes.
+
 ## who-fic-icd-api [0.1.0] - 2026-08-04
 
 Initial release: an async client for the live WHO ICD-API (`id.who.int`),

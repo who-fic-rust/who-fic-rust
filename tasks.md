@@ -283,6 +283,31 @@ commit — this phase found and fixed that, plus a few other rough edges.
 - [x] `specs/index.md` and root `README.md` updated to cross-link the new
       docs
 
+## Phase 12 — Version bump and republish for Phase 11's breaking change (2026-08-04)
+
+Phase 11's `Index` harmonization changed `IcfLinearizationIndex`/
+`IchiLinearizationIndex`'s `iter()`/`IntoIterator` item type — a breaking
+change to the already-published 0.2.0. Pre-1.0 semver: breaking change
+bumps the minor version.
+
+- [x] Lockstep group (`who-fic`, `who-fic-icd`, `who-fic-icf`,
+      `who-fic-ichi`): 0.2.0 → 0.3.0
+- [x] `who-fic-linearization`, `who-fic-claml`, `who-fic-icd-api`: 0.1.0 →
+      0.1.1 (non-breaking additions only — example-collision fix, a new
+      example file)
+- [x] CHANGELOG.md updated with the breaking-change note
+- [x] Full workspace verification, publish in dependency order, push
+
+## Published (0.3.0 / 0.1.1)
+
+- [x] `who-fic-linearization` 0.1.1 — https://crates.io/crates/who-fic-linearization
+- [x] `who-fic-claml` 0.1.1 — https://crates.io/crates/who-fic-claml
+- [x] `who-fic-icd` 0.3.0 — https://crates.io/crates/who-fic-icd
+- [x] `who-fic-icf` 0.3.0 — https://crates.io/crates/who-fic-icf
+- [x] `who-fic-ichi` 0.3.0 — https://crates.io/crates/who-fic-ichi
+- [x] `who-fic` 0.3.0 — https://crates.io/crates/who-fic
+- [x] `who-fic-icd-api` 0.1.1 — https://crates.io/crates/who-fic-icd-api
+
 ## Backlog / future subcrates (not scheduled)
 
 - [ ] Semantic cluster validation for ICD-11 postcoordination (needs WHO data)
