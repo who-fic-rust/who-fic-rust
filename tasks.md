@@ -203,6 +203,39 @@ auth flow verified against WHO's own OpenAPI spec
 - [x] README + rustdoc examples
 - [x] `cargo publish --dry-run`, then publish; push to git remotes
 
+## Phase 9 — Hardening (2026-08-04)
+
+CI had never actually been verified to pass on GitHub since the first
+commit — this phase found and fixed that, plus a few other rough edges.
+
+- [x] **Fixed CI, which had been failing on every push since day one**:
+      `who-fic/examples/readme.rs` referenced `who_fic::icd`/`icf`/`ichi`
+      unconditionally, breaking `cargo test --workspace
+      --no-default-features` (feature-gated the example body)
+- [x] Fixed output-filename collisions across all six crates' identically
+      named `examples/readme.rs` (Cargo warning, "may become a hard error
+      in the future") by giving each an explicit unique `[[example]]` name
+- [x] Bumped `actions/checkout@v4` → `v5` in CI, clearing Node.js 20
+      deprecation warnings on every run
+- [x] Added crates.io/docs.rs/CI/license badges to all seven crate
+      READMEs; rewrote the previously-6-line root README into a proper
+      workspace index
+- [x] Closed a `#![warn(missing_docs)]` enforcement gap: `who-fic-icd`,
+      `who-fic-ichi`, and `who-fic-linearization` lacked it (the other
+      four crates had it); no items were actually undocumented, but future
+      ones would have silently passed CI
+- [x] Audited every `.unwrap()`/`.expect()`/`panic!()` in non-doctest
+      library code workspace-wide: all are provably-safe internal
+      invariants (e.g. guarded by a preceding `is_empty()`/`find()`
+      check); none are latent panics on untrusted input
+- [x] Checked for `TODO`/`FIXME`, `#[ignore]`d tests, and clippy
+      `#[allow(...)]` suppressions: none found beyond one well-justified,
+      already-commented exception
+- [x] Confirmed the 7 source files with no inline `#[test]` module are
+      covered by rustdoc doctests instead (a deliberate, already-passing
+      strategy), except `who-fic-ichi/src/extension.rs`, which is a
+      documentation-only stub by design
+
 ## Backlog / future subcrates (not scheduled)
 
 - [ ] Semantic cluster validation for ICD-11 postcoordination (needs WHO data)
