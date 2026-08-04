@@ -134,28 +134,31 @@ structure). `who-fic` provides `From` conversions to `FicError`.
 
 Two independent optional features add title/hierarchy lookups sourced from
 WHO's own exports — the user supplies the file; this crate never bundles
-WHO content (see [architecture.md](architecture.md)).
+WHO content. Both follow the shared "Data-loading index conventions" in
+[architecture.md](architecture.md) (`BTreeMap`-backed, `ClassEntry` carries
+its own `code()`, `.iter()`/`IntoIterator` yield entries in ascending code
+order, lenient row/class skipping vs. fatal source-file errors) — this
+section only covers what's specific to ICD.
 
 - **`claml` feature** (module `icd10::claml`, depends on
   [`who-fic-claml`](who-fic-claml.md)): adapts a parsed ClaML `Class` list
-  into a lookup from `Icd10Code` to its preferred title and chapter
-  membership. `Icd10ClamlIndex::from_document(&ClamlDocument) -> Result<Self,
-  Icd10ClamlError>` builds the index (parsing each `Class`'s `code` as an
-  `Icd10Code`, skipping/reporting non-ICD-10-shaped classes such as chapter
-  or block entries that don't parse); `.title(&Icd10Code) -> Option<&str>`,
-  `.get(&Icd10Code) -> Option<&Icd10ClassEntry>`.
+  into a lookup from `Icd10Code` to its preferred title and raw `kind`.
+  `Icd10ClamlIndex::from_document(&ClamlDocument) -> Result<Self,
+  Icd10ClamlError>` builds the index, skipping non-ICD-10-shaped classes
+  (chapter/block entries whose `code` is a range like `"A00-A09"`, which
+  don't parse as `Icd10Code`) rather than erroring.
 - **`linearization` feature** (module `icd11::linearization`, depends on
   [`who-fic-linearization`](who-fic-linearization.md)): adapts
   `LinearizationRow`s from the MMS export into a lookup from `Icd11Code` to
-  title, chapter, residual status, and — since MMS rows carry
-  `Grouping1`–`5` — its block-grouping path. `Icd11LinearizationIndex::
-  from_rows(impl Iterator<Item = Result<LinearizationRow, LinearizationError>>) -> Result<Self,
-  Icd11LinearizationError>`; same `.title()`/`.get()` shape as the ICD-10
-  index.
+  title, residual status, chapter number, and — since MMS rows carry
+  `Grouping1`–`5` — its block-grouping path (`Icd11ClassEntry::groupings()`).
+  `Icd11LinearizationIndex::from_rows(impl Iterator<Item =
+  Result<LinearizationRow, LinearizationError>>) -> Result<Self,
+  Icd11LinearizationError>`.
 
 Both indexes are read-only, in-memory lookups built once from a
-user-supplied export; they are not live queries against WHO's API (that's
-the separate, unscheduled `who-fic-icd-api` subcrate).
+user-supplied export; they are not live queries against WHO's API — for
+that, see [`who-fic-icd-api`](who-fic-icd-api.md).
 
 ## `serde`
 

@@ -101,13 +101,15 @@ FicError` conversion drops the `axis` field (there is no equivalent slot in
 **`linearization` feature** (module `linearization`, depends on
 [`who-fic-linearization`](who-fic-linearization.md)): adapts
 `LinearizationRow`s from WHO's ICHI "Simplified Linearization Output"
-export into a lookup from `IchiCode` to title. Same shape as
-`who-fic-icf`'s `linearization` feature:
+export into a lookup from `IchiCode` to title. Follows the shared
+"Data-loading index conventions" in [architecture.md](architecture.md)
+(`BTreeMap`-backed, `IchiClassEntry` carries its own `.code()`,
+`.iter()`/`IntoIterator` yield entries in ascending code order) — same
+shape as `who-fic-icf`'s `linearization` feature.
 `IchiLinearizationIndex::from_rows(impl Iterator<Item = Result<LinearizationRow,
 LinearizationError>>) -> Result<Self, IchiLinearizationError>` — takes
 exactly what a `LinearizationReader` yields; a reader-level `Err`
-propagates immediately, `.title(&IchiCode) -> Option<&str>`,
-`.get(&IchiCode) -> Option<&IchiClassEntry>`. Rows whose `Code` doesn't
+propagates immediately. Rows whose `Code` doesn't
 parse as an `IchiCode` are skipped rather than treated as fatal (in
 practice this includes a small number of `(proposed)` Beta-3 entries still
 using a placeholder `??` target). Retaining the block-title hierarchy

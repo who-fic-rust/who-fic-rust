@@ -118,17 +118,20 @@ the tabulation itself.
 **`linearization` feature** (module `linearization`, depends on
 [`who-fic-linearization`](who-fic-linearization.md)): adapts
 `LinearizationRow`s from WHO's ICF "Simplified Linearization Output" export
-into a lookup from `IcfCode` to title and hierarchy level. The user
-supplies the exported file; this crate never bundles WHO content (see
-[architecture.md](architecture.md)). `IcfLinearizationIndex::from_rows(impl
-Iterator<Item = Result<LinearizationRow, LinearizationError>>) ->
-Result<Self, IcfLinearizationError>` — takes exactly what a
-`LinearizationReader` yields, so a reader can be passed straight in; a
-reader-level `Err` (the file itself is malformed) propagates immediately,
-while a row whose `Code` column doesn't parse as an `IcfCode` is skipped
-rather than treated as fatal (chapter/block rows have no code and are
-skipped from the code-keyed index the same way). `.title(&IcfCode) ->
-Option<&str>`, `.get(&IcfCode) -> Option<&IcfClassEntry>`.
+into a lookup from `IcfCode` to title and raw `class_kind`. The user
+supplies the exported file; this crate never bundles WHO content. Follows
+the shared "Data-loading index conventions" in
+[architecture.md](architecture.md) (`BTreeMap`-backed, `IcfClassEntry`
+carries its own `.code()`, `.iter()`/`IntoIterator` yield entries in
+ascending code order).
+`IcfLinearizationIndex::from_rows(impl Iterator<Item =
+Result<LinearizationRow, LinearizationError>>) -> Result<Self,
+IcfLinearizationError>` — takes exactly what a `LinearizationReader`
+yields, so a reader can be passed straight in; a reader-level `Err` (the
+file itself is malformed) propagates immediately, while a row whose `Code`
+column doesn't parse as an `IcfCode` is skipped rather than treated as
+fatal (chapter/block rows have no code and are skipped from the
+code-keyed index the same way).
 
 ## `serde`
 

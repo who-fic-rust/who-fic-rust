@@ -440,7 +440,7 @@ impl std::error::Error for Icd10ParseError {}
 #[cfg(feature = "claml")]
 pub mod claml {
     use super::{Icd10Code, Icd10ParseError};
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
     use std::fmt;
     use std::str::FromStr;
     use who_fic_claml::ClamlDocument;
@@ -577,7 +577,7 @@ pub mod claml {
     /// ```
     #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct Icd10ClamlIndex {
-        entries: HashMap<Icd10Code, Icd10ClassEntry>,
+        entries: BTreeMap<Icd10Code, Icd10ClassEntry>,
     }
 
     impl Icd10ClamlIndex {
@@ -596,7 +596,7 @@ pub mod claml {
         ///
         /// See the type-level example above.
         pub fn from_document(doc: &ClamlDocument) -> Result<Self, Icd10ClamlError> {
-            let mut entries = HashMap::new();
+            let mut entries = BTreeMap::new();
             for class in doc.classes() {
                 let code = match Icd10Code::from_str(class.code()) {
                     Ok(code) => code,
@@ -653,7 +653,7 @@ pub mod claml {
             self.entries.get(code)
         }
 
-        /// Iterates every indexed entry, in unspecified order.
+        /// Iterates every indexed entry, in ascending code order.
         ///
         /// ```
         /// use who_fic_claml::ClamlDocument;
@@ -697,6 +697,15 @@ pub mod claml {
         /// ```
         pub fn is_empty(&self) -> bool {
             self.entries.is_empty()
+        }
+    }
+
+    impl<'a> IntoIterator for &'a Icd10ClamlIndex {
+        type Item = &'a Icd10ClassEntry;
+        type IntoIter = std::collections::btree_map::Values<'a, Icd10Code, Icd10ClassEntry>;
+
+        fn into_iter(self) -> Self::IntoIter {
+            self.entries.values()
         }
     }
 
@@ -836,6 +845,16 @@ pub mod claml {
             let json = serde_json::to_string(entry).unwrap();
             let back: Icd10ClassEntry = serde_json::from_str(&json).unwrap();
             assert_eq!(&back, entry);
+        }
+
+        #[test]
+        fn iter_and_into_iter_agree_in_ascending_code_order() {
+            let index = fixture_index();
+            let via_iter: Vec<&str> = index.iter().map(|e| e.code().as_str()).collect();
+            let via_into_iter: Vec<&str> =
+                (&index).into_iter().map(|e| e.code().as_str()).collect();
+            assert_eq!(via_iter, vec!["A00", "A01"]);
+            assert_eq!(via_iter, via_into_iter);
         }
     }
 }

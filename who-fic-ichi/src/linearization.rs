@@ -31,19 +31,25 @@ use who_fic_linearization::{LinearizationError, LinearizationRow};
 
 use crate::IchiCode;
 
-/// One entry of an [`IchiLinearizationIndex`]: the title and raw
-/// `ClassKind` WHO's export recorded for a single [`IchiCode`].
+/// One entry of an [`IchiLinearizationIndex`]: a code, its title, and the
+/// raw `ClassKind` WHO's export recorded for it.
 ///
 /// A plain data struct — construct an index and look entries up through it
 /// rather than building this type directly.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct IchiClassEntry {
+    code: IchiCode,
     title: String,
     class_kind: String,
 }
 
 impl IchiClassEntry {
+    /// The entry's code.
+    pub fn code(&self) -> &IchiCode {
+        &self.code
+    }
+
     /// The entry's title, e.g. `"Excision of brain tissue, open approach"`.
     ///
     /// Leading `"- "` depth markers are already stripped (see
@@ -203,8 +209,9 @@ impl IchiLinearizationIndex {
                 continue;
             };
             entries.insert(
-                code,
+                code.clone(),
                 IchiClassEntry {
+                    code,
                     title: row.title().to_string(),
                     class_kind: row.class_kind().to_string(),
                 },
@@ -236,10 +243,9 @@ impl IchiLinearizationIndex {
         self.entries.get(code)
     }
 
-    /// Iterates over every indexed `(code, entry)` pair, in ascending
-    /// [`IchiCode`] order.
-    pub fn iter(&self) -> impl Iterator<Item = (&IchiCode, &IchiClassEntry)> {
-        self.entries.iter()
+    /// Iterates over every indexed entry, in ascending [`IchiCode`] order.
+    pub fn iter(&self) -> impl Iterator<Item = &IchiClassEntry> {
+        self.entries.values()
     }
 
     /// The number of codes indexed.
@@ -250,6 +256,15 @@ impl IchiLinearizationIndex {
     /// Whether the index has no entries.
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
+    }
+}
+
+impl<'a> IntoIterator for &'a IchiLinearizationIndex {
+    type Item = &'a IchiClassEntry;
+    type IntoIter = std::collections::btree_map::Values<'a, IchiCode, IchiClassEntry>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.entries.values()
     }
 }
 
@@ -317,7 +332,20 @@ mod tests {
     #[test]
     fn iter_visits_every_entry_in_code_order() {
         let index = build_index();
-        let codes: Vec<String> = index.iter().map(|(code, _)| code.to_string()).collect();
+        let codes: Vec<String> = index.iter().map(|entry| entry.code().to_string()).collect();
+        assert_eq!(
+            codes,
+            vec!["IAA.BA.BB".to_string(), "IAA.BA.BC".to_string()]
+        );
+    }
+
+    #[test]
+    fn into_iter_on_reference_matches_iter() {
+        let index = build_index();
+        let codes: Vec<String> = (&index)
+            .into_iter()
+            .map(|entry| entry.code().to_string())
+            .collect();
         assert_eq!(
             codes,
             vec!["IAA.BA.BB".to_string(), "IAA.BA.BC".to_string()]
@@ -353,6 +381,7 @@ mod tests {
         let index = build_index();
         let code: IchiCode = "IAA.BA.BB".parse().unwrap();
         let entry = index.get(&code).unwrap();
+        assert_eq!(entry.code(), &code);
         assert_eq!(entry.title(), "Excision of brain tissue, open approach");
         assert_eq!(entry.class_kind(), "category");
     }

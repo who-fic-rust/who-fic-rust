@@ -26,8 +26,8 @@
 //! assert_eq!(index.title(&code), Some("Consciousness functions"));
 //! ```
 
-use std::collections::HashMap;
-use std::collections::hash_map;
+use std::collections::BTreeMap;
+use std::collections::btree_map;
 use std::fmt;
 use std::str::FromStr;
 
@@ -35,22 +35,40 @@ use who_fic_linearization::{LinearizationError, LinearizationRow};
 
 use crate::IcfCode;
 
-/// One indexed entry from an ICF linearization export: a code's title and
-/// the raw `ClassKind` of the row it came from.
+/// One indexed entry from an ICF linearization export: a code, its title,
+/// and the raw `ClassKind` of the row it came from.
 ///
 /// # Examples
 ///
 /// ```
-/// use who_fic_icf::linearization::IcfClassEntry;
+/// use std::str::FromStr;
+/// use who_fic_icf::linearization::IcfLinearizationIndex;
+/// use who_fic_icf::IcfCode;
+/// use who_fic_linearization::LinearizationReader;
+///
+/// let tsv = "\
+/// Foundation URI\tLinearization (release) URI\tCode\tBlockId\tTitle\tClassKind\tDepthInKind\tIsResidual\tPrimaryLocation\tChapterNo\tBrowserLink\tisLeaf\tnoOfNonResidualChildren\tVersion:x\n\
+/// \thttp://id.who.int/icd/release/11/beta/icf/1\tb110\t\t\"Consciousness functions\"\tcategory\t2\tFalse\tTrue\t\t\tTrue\t0\n";
+/// let index = IcfLinearizationIndex::from_rows(LinearizationReader::from_str(tsv)).unwrap();
+///
+/// let entry = index.get(&IcfCode::from_str("b110").unwrap()).unwrap();
+/// assert_eq!(entry.code(), &IcfCode::from_str("b110").unwrap());
+/// assert_eq!(entry.title(), "Consciousness functions");
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct IcfClassEntry {
+    code: IcfCode,
     title: String,
     class_kind: String,
 }
 
 impl IcfClassEntry {
+    /// The entry's code.
+    pub fn code(&self) -> &IcfCode {
+        &self.code
+    }
+
     /// The entry's title, as given by the export's `Title` column (with
     /// leading depth-dash markers already stripped by
     /// [`who_fic_linearization`]).
@@ -94,7 +112,7 @@ impl IcfClassEntry {
 /// ```
 #[derive(Debug, Clone, Default)]
 pub struct IcfLinearizationIndex {
-    entries: HashMap<IcfCode, IcfClassEntry>,
+    entries: BTreeMap<IcfCode, IcfClassEntry>,
 }
 
 impl IcfLinearizationIndex {
@@ -144,7 +162,7 @@ impl IcfLinearizationIndex {
     where
         I: Iterator<Item = Result<LinearizationRow, LinearizationError>>,
     {
-        let mut entries = HashMap::new();
+        let mut entries = BTreeMap::new();
         for row in rows {
             let row = row?;
             let Some(raw_code) = row.code() else {
@@ -157,8 +175,9 @@ impl IcfLinearizationIndex {
                 continue;
             };
             entries.insert(
-                code,
+                code.clone(),
                 IcfClassEntry {
+                    code,
                     title: row.title().to_string(),
                     class_kind: row.class_kind().to_string(),
                 },
@@ -198,10 +217,9 @@ impl IcfLinearizationIndex {
         self.entries.get(code)
     }
 
-    /// Iterates over all indexed `(code, entry)` pairs, in unspecified
-    /// order.
-    pub fn iter(&self) -> impl Iterator<Item = (&IcfCode, &IcfClassEntry)> {
-        self.entries.iter()
+    /// Iterates over all indexed entries, in ascending code order.
+    pub fn iter(&self) -> impl Iterator<Item = &IcfClassEntry> {
+        self.entries.values()
     }
 
     /// The number of indexed codes.
@@ -216,11 +234,11 @@ impl IcfLinearizationIndex {
 }
 
 impl<'a> IntoIterator for &'a IcfLinearizationIndex {
-    type Item = (&'a IcfCode, &'a IcfClassEntry);
-    type IntoIter = hash_map::Iter<'a, IcfCode, IcfClassEntry>;
+    type Item = &'a IcfClassEntry;
+    type IntoIter = btree_map::Values<'a, IcfCode, IcfClassEntry>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.entries.iter()
+        self.entries.values()
     }
 }
 
@@ -315,6 +333,7 @@ mod tests {
         assert_eq!(index.title(&b110), Some("Consciousness functions"));
         assert_eq!(index.title(&b1100), Some("State of consciousness"));
         assert_eq!(index.get(&b110).unwrap().class_kind(), "category");
+        assert_eq!(index.get(&b110).unwrap().code(), &b110);
     }
 
     #[test]
@@ -345,21 +364,19 @@ mod tests {
     }
 
     #[test]
-    fn iter_visits_all_entries() {
+    fn iter_visits_all_entries_in_ascending_code_order() {
         let index = fixture_index();
-        let mut codes: Vec<&str> = index.iter().map(|(code, _)| code.as_str()).collect();
-        codes.sort_unstable();
+        let codes: Vec<&str> = index.iter().map(|entry| entry.code().as_str()).collect();
         assert_eq!(codes, vec!["b110", "b1100"]);
     }
 
     #[test]
     fn into_iter_on_reference_matches_iter() {
         let index = fixture_index();
-        let mut codes: Vec<&str> = (&index)
+        let codes: Vec<&str> = (&index)
             .into_iter()
-            .map(|(code, _)| code.as_str())
+            .map(|entry| entry.code().as_str())
             .collect();
-        codes.sort_unstable();
         assert_eq!(codes, vec!["b110", "b1100"]);
     }
 

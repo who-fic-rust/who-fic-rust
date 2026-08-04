@@ -111,16 +111,26 @@ impl IcdApiClient {
         -> IcdApiClientBuilder;
 
     pub async fn entity(&self, foundation_id: &str) -> Result<Entity, IcdApiError>;
+    pub async fn entity_search(&self, query: &str) -> Result<SearchResults, IcdApiError>;
     pub async fn linearization_entity(&self, release_id: &str, linearization: &str, id: &str)
         -> Result<Entity, IcdApiError>;
     pub async fn code_info(&self, release_id: &str, linearization: &str, code: &str)
+        -> Result<CodeInfo, IcdApiError>;
+    pub async fn code_info_typed(&self, release_id: &str, linearization: &str, code: &Icd11Code)
         -> Result<CodeInfo, IcdApiError>;
     pub async fn search(&self, release_id: &str, linearization: &str, query: &str)
         -> Result<SearchResults, IcdApiError>;
     pub async fn icd10_category(&self, release_id: &str, code: &str)
         -> Result<Icd10Entity, IcdApiError>;
+    pub async fn icd10_category_typed(&self, release_id: &str, code: &Icd10Code)
+        -> Result<Icd10Entity, IcdApiError>;
 }
 ```
+
+(`entity_search` — foundation-wide search — is in the endpoint table above
+but was missing from an earlier draft of this method list; the
+`*_typed` methods are the "Typed-code convenience" described below, listed
+here too for a complete signature reference.)
 
 `IcdApiClientBuilder` configures: `client_id`/`client_secret` (required,
 taken by `builder()`), `language` (default `"en"`), `token_url` and

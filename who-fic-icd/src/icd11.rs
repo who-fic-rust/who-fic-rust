@@ -857,7 +857,7 @@ impl TryFrom<&str> for Cluster {
 #[cfg(feature = "linearization")]
 pub mod linearization {
     use super::Icd11Code;
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
     use std::fmt;
     use std::str::FromStr;
     use who_fic_linearization::{LinearizationError, LinearizationRow};
@@ -962,7 +962,7 @@ pub mod linearization {
     /// ```
     #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct Icd11LinearizationIndex {
-        entries: HashMap<Icd11Code, Icd11ClassEntry>,
+        entries: BTreeMap<Icd11Code, Icd11ClassEntry>,
     }
 
     impl Icd11LinearizationIndex {
@@ -984,7 +984,7 @@ pub mod linearization {
         pub fn from_rows(
             rows: impl Iterator<Item = Result<LinearizationRow, LinearizationError>>,
         ) -> Result<Self, Icd11LinearizationError> {
-            let mut entries = HashMap::new();
+            let mut entries = BTreeMap::new();
             for result in rows {
                 let row = result?;
                 let Some(code_str) = row.code() else {
@@ -1048,7 +1048,7 @@ pub mod linearization {
             self.entries.get(code)
         }
 
-        /// Iterates every indexed entry, in unspecified order.
+        /// Iterates every indexed entry, in ascending code order.
         ///
         /// ```
         /// use who_fic_linearization::LinearizationReader;
@@ -1092,6 +1092,15 @@ pub mod linearization {
         /// ```
         pub fn is_empty(&self) -> bool {
             self.entries.is_empty()
+        }
+    }
+
+    impl<'a> IntoIterator for &'a Icd11LinearizationIndex {
+        type Item = &'a Icd11ClassEntry;
+        type IntoIter = std::collections::btree_map::Values<'a, Icd11Code, Icd11ClassEntry>;
+
+        fn into_iter(self) -> Self::IntoIter {
+            self.entries.values()
         }
     }
 
@@ -1216,6 +1225,16 @@ uri\turi\t\t\t\"Unterminated title\tcategory\t1\tFalse\tTrue\t\t\tTrue\t0\n";
             let json = serde_json::to_string(entry).unwrap();
             let back: Icd11ClassEntry = serde_json::from_str(&json).unwrap();
             assert_eq!(&back, entry);
+        }
+
+        #[test]
+        fn iter_and_into_iter_agree_in_ascending_code_order() {
+            let index = fixture_index();
+            let via_iter: Vec<&str> = index.iter().map(|e| e.code().as_str()).collect();
+            let via_into_iter: Vec<&str> =
+                (&index).into_iter().map(|e| e.code().as_str()).collect();
+            assert_eq!(via_iter, vec!["1A00", "1A03.Y"]);
+            assert_eq!(via_iter, via_into_iter);
         }
     }
 }
