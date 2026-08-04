@@ -43,6 +43,8 @@
 //! assert_eq!(code.means().as_str(), "AD");
 //! ```
 
+#![warn(missing_docs)]
+
 mod axis;
 mod code;
 mod error;

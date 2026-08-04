@@ -20,6 +20,8 @@
 //! assigned a given code). Existence checks require WHO data and are out of
 //! scope for this crate.
 
+#![warn(missing_docs)]
+
 pub mod icd10;
 pub mod icd11;
 
