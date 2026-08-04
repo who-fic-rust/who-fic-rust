@@ -34,6 +34,9 @@ never vendored by these crates — see
 - **New here? Start with [TUTORIAL.md](TUTORIAL.md)** — a guided
   walkthrough of all seven crates, code parsing through the live API
   client.
+- [FAQ.md](FAQ.md) — specific questions ("does this validate a code
+  exists?", "is this crate async?", "will a future release break my
+  code?") that don't fit a walkthrough
 - [plan.md](plan.md) — project goals, design principles, architecture
 - [tasks.md](tasks.md) — task breakdown and what's shipped
 - [specs/](specs/index.md) — detailed per-crate specifications (the

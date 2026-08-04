@@ -131,7 +131,25 @@ Everything above works with zero data files — it's pure syntax. To answer
 project deliberately does not bundle (see `specs/architecture.md`'s
 licensing section). Instead, enable a crate's `linearization` or `claml`
 feature, download the matching export yourself from WHO, and build an
-in-memory index from it:
+in-memory index from it.
+
+**Getting the file, for ICD-11/ICF/ICHI** (verified steps, as of this
+writing):
+
+1. Go to <https://icd.who.int/dev11/downloads> ("Download Area").
+2. Download the "Simplified Linearization Output" ZIP for whichever
+   classification you need: `LinearizationMiniOutput-MMS-en.zip` for
+   ICD-11, `LinearizationMiniOutput-ICF-en.zip` for ICF,
+   `LinearizationMiniOutput-ICHI-en.zip` for ICHI.
+3. Unzip it — each contains a `.txt` (what `who-fic-linearization` parses)
+   and an `.xlsx` (not something this crate reads; ignore it).
+
+**Getting the file, for ICD-10**: ClaML exports are distributed by WHO
+and by national classification authorities (e.g. Germany's BfArM), and
+exactly where/how varies more than the ICD-11/ICF/ICHI case above — check
+`specs/who-fic-claml.md` and WHO's own ICD-10 pages for current links
+rather than trusting a fixed URL here, since this hasn't been verified as
+precisely as the download-area steps above.
 
 ```toml
 [dependencies]
