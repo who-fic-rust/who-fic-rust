@@ -180,6 +180,7 @@ real WHO downloads on 2026-08-03 (see those specs' "verified" notes).
 - [x] `who-fic-icf` 0.2.0 — https://crates.io/crates/who-fic-icf
 - [x] `who-fic-ichi` 0.2.0 — https://crates.io/crates/who-fic-ichi
 - [x] `who-fic` 0.2.0 — https://crates.io/crates/who-fic
+- [x] `who-fic-icd-api` 0.1.0 — https://crates.io/crates/who-fic-icd-api
 
 ## Phase 8 — `who-fic-icd-api`
 
