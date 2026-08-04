@@ -15,7 +15,7 @@ members = [
 # who-fic-linearization, who-fic-claml, and who-fic-icd-api are newer
 # crates with their own independent version, set directly in their own
 # Cargo.toml.
-version = "0.3.0"
+version = "0.3.1"
 edition = "2024"
 rust-version = "1.85"
 license = "MIT OR Apache-2.0"
@@ -23,8 +23,8 @@ repository = "https://github.com/who-fic-rust/who-fic-rust"
 authors = ["Joel Parker Henderson <joel@joelparkerhenderson.com>"]
 
 [workspace.dependencies]
-who-fic-icd = { version = "0.3.0", path = "who-fic-icd" }
-who-fic-icf = { version = "0.3.0", path = "who-fic-icf" }
-who-fic-ichi = { version = "0.3.0", path = "who-fic-ichi" }
-who-fic-linearization = { version = "0.1.1", path = "who-fic-linearization" }
-who-fic-claml = { version = "0.1.1", path = "who-fic-claml" }
+who-fic-icd = { version = "0.3.1", path = "who-fic-icd" }
+who-fic-icf = { version = "0.3.1", path = "who-fic-icf" }
+who-fic-ichi = { version = "0.3.1", path = "who-fic-ichi" }
+who-fic-linearization = { version = "0.1.2", path = "who-fic-linearization" }
+who-fic-claml = { version = "0.1.2", path = "who-fic-claml" }

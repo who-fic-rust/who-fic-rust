@@ -308,6 +308,77 @@ bumps the minor version.
 - [x] `who-fic` 0.3.0 — https://crates.io/crates/who-fic
 - [x] `who-fic-icd-api` 0.1.1 — https://crates.io/crates/who-fic-icd-api
 
+## Phase 13 — Accuracy pass on plans/tasks/files/agent files (2026-08-04)
+
+- [x] Fixed two genuinely broken install snippets (`TUTORIAL.md`,
+      `who-fic/README.md` still pinned `"0.2"`, which can't resolve to
+      0.3.0)
+- [x] Fixed `specs/architecture.md`'s stale "currently 0.2.0" version
+      claim; reworded to point at `Cargo.toml` as source of truth instead
+      of a number requiring updates every release
+- [x] Fixed three files (`specs/architecture.md`, `AGENTS.md`,
+      `AGENTS/testing.md`) that misattributed the Index harmonization to
+      "Phase 9" (actually Phase 11)
+- [x] Found and corrected a fabricated claim in `AGENTS/testing.md`
+      (asserted a specific bug was "caught during harmonization" — checked
+      the actual test modules and found it false; all four adapters
+      already had the relevant tests before harmonization)
+- [x] `AGENTS/release.md` claimed "no breaking change shipped yet" — ran
+      `cargo-semver-checks` (installed earlier, never used) against the
+      0.2.0 baseline to validate the 0.3.0 bump decision with real tool
+      output instead of an untested claim
+- [x] `plan.md`'s status line and phase list stopped at "Phase 8 in
+      progress"; added Phases 9–12 summaries
+- [x] Added missing `## Install` sections to the six individual crate
+      READMEs (only `who-fic`'s README and `TUTORIAL.md` had one);
+      verified all seven version requirements resolve against the live
+      registry by building a throwaway project against them
+
+## Phase 14 — More examples, FAQ, tutorial expansion (2026-08-04)
+
+- [x] One new, distinct runnable example per crate (not a README mirror):
+      `postcoordination_cluster.rs` (icd), `hierarchy_walk.rs` (icf),
+      `axis_composition.rs` (ichi), `stream_and_filter.rs`
+      (linearization), `walk_hierarchy.rs` (claml),
+      `search_and_traverse.rs` (icd-api) — each built/run, each crate's
+      README links to its `examples/` directory
+- [x] `FAQ.md`: which-crate-do-I-need, offline-vs-live title lookup, why
+      no WHO content is bundled, syntax-vs-existence validation, explicit
+      non-endorsement for clinical/billing/regulatory use, the
+      linearization-crate vs. `*Index`-adapter distinction, `chapter()`
+      returning `Option`, async scope, ICHI beta-status parsing
+      surprises, `no_std` status, MSRV, pre-1.0 semver policy
+- [x] `TUTORIAL.md`'s data-loading section: replaced "downloaded
+      yourself" with the actual verified download steps (URL, filenames,
+      ZIP contents) for ICD-11/ICF/ICHI; honest caveat that ICD-10 ClaML
+      sourcing wasn't verified to the same precision
+- [x] Rustdoc annotation audit (84 candidate items + full module-doc
+      sweep): concluded existing coverage is already correctly weighted,
+      no changes needed — verified against `LinearizationRow`'s
+      type-level example and confirmed the one module needing a `//!` doc
+      (a `pub mod`, not a private implementation detail) already had one
+
+## Phase 15 — Republish for Phase 13/14 content (2026-08-04)
+
+Every crate's packaged content changed since the 0.3.0/0.1.1 publish (new
+`examples/*.rs`, updated `README.md`) but no `src/` files changed in any
+crate — confirmed via `git diff --stat` per crate directory before
+deciding the bump. Non-breaking: patch bump across the board.
+
+- [x] Lockstep group: 0.3.0 → 0.3.1
+- [x] Independent crates: 0.1.1 → 0.1.2
+- [x] Full workspace verification, publish in dependency order, push
+
+## Published (0.3.1 / 0.1.2)
+
+- [x] `who-fic-linearization` 0.1.2 — https://crates.io/crates/who-fic-linearization
+- [x] `who-fic-claml` 0.1.2 — https://crates.io/crates/who-fic-claml
+- [x] `who-fic-icd` 0.3.1 — https://crates.io/crates/who-fic-icd
+- [x] `who-fic-icf` 0.3.1 — https://crates.io/crates/who-fic-icf
+- [x] `who-fic-ichi` 0.3.1 — https://crates.io/crates/who-fic-ichi
+- [x] `who-fic` 0.3.1 — https://crates.io/crates/who-fic
+- [x] `who-fic-icd-api` 0.1.2 — https://crates.io/crates/who-fic-icd-api
+
 ## Backlog / future subcrates (not scheduled)
 
 - [ ] Semantic cluster validation for ICD-11 postcoordination (needs WHO data)

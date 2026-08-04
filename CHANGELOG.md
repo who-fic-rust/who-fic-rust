@@ -11,6 +11,21 @@ crates with their own independent version.
 
 ## [Unreleased]
 
+## who-fic / who-fic-icd / who-fic-icf / who-fic-ichi / who-fic-linearization / who-fic-claml / who-fic-icd-api [0.3.1 / 0.1.2] - 2026-08-04
+
+Non-breaking: every crate gained a second runnable example (beyond the
+existing README mirror) and a fuller README (install snippet where
+missing, examples pointer). No source/API changes in any crate.
+
+### Added
+
+- `who-fic-icd`: `examples/postcoordination_cluster.rs`
+- `who-fic-icf`: `examples/hierarchy_walk.rs`
+- `who-fic-ichi`: `examples/axis_composition.rs`
+- `who-fic-linearization`: `examples/stream_and_filter.rs`
+- `who-fic-claml`: `examples/walk_hierarchy.rs`
+- `who-fic-icd-api`: `examples/search_and_traverse.rs`
+
 ## who-fic / who-fic-icd / who-fic-icf / who-fic-ichi [0.3.0] - 2026-08-04
 
 ### Changed
