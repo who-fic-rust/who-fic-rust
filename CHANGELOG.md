@@ -13,9 +13,11 @@ crates with their own independent version.
 
 ## who-fic / who-fic-icd / who-fic-icf / who-fic-ichi / who-fic-linearization / who-fic-claml / who-fic-icd-api [0.3.1 / 0.1.2] - 2026-08-04
 
-Non-breaking: every crate gained a second runnable example (beyond the
-existing README mirror) and a fuller README (install snippet where
-missing, examples pointer). No source/API changes in any crate.
+Non-breaking: each of the six non-umbrella crates gained a second
+runnable example (beyond the existing README mirror) and a fuller README
+(install snippet where missing, examples pointer); `who-fic`'s own README
+change was limited to fixing its install snippet's stale `"0.2"` pin. No
+source/API changes in any crate.
 
 ### Added
 

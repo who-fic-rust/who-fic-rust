@@ -68,7 +68,11 @@ The **generic scale** for a single qualifier digit:
 | 8 | not specified |
 | 9 | not applicable |
 
-(5–7 are invalid.) Model as `Qualifier` enum or validated newtype.
+(5–7 are invalid.) Modeled as the `Qualifier` enum, with
+`as_digit() -> u8` and the usual char/str conversions
+(`TryFrom<char>`/`FromStr`/`TryFrom<&str>`/`Display`); `Component`
+likewise converts via `letter() -> char`, `TryFrom<char>`, and
+`FromStr`.
 
 Qualifier structure differs per component — this is the crux of ICF and the
 type system should enforce it:
@@ -102,7 +106,10 @@ named accessors (`extent`/`nature`/`location`;
 `performance`/`capacity`/`position_3`/`position_4`). `repr` is a
 precomputed canonical string so `as_str()`/`Display` are O(1); equality,
 hashing, and ordering are defined over `(code, payload)` only, deliberately
-excluding the redundant `repr` cache.
+excluding the redundant `repr` cache. Read access goes through
+`QualifiedIcfCode::code()/component()/qualifiers()`, the
+`QualifierPayload::as_*` per-component accessors, and
+`EnvironmentalQualifier::qualifier()/is_barrier()/is_facilitator()/separator()`.
 
 A bare `IcfCode` (no qualifiers) remains valid on its own — WHO recommends
 codes be used with qualifiers, but the unqualified form is what appears in
@@ -131,17 +138,26 @@ yields, so a reader can be passed straight in; a reader-level `Err` (the
 file itself is malformed) propagates immediately, while a row whose `Code`
 column doesn't parse as an `IcfCode` is skipped rather than treated as
 fatal (chapter/block rows have no code and are skipped from the
-code-keyed index the same way).
+code-keyed index the same way). The propagated error is
+`IcfLinearizationError`, whose single variant `Reader` wraps
+`LinearizationError` via `From` (note: `who-fic-ichi`'s equivalent
+variant is named `Read` — a naming divergence between the two, neither
+name being load-bearing). `IcfClassEntry` carries
+`code()`/`title()`/`class_kind()`.
 
 ## `serde`
 
-Optional feature; canonical-string serialization for `IcfCode` and
-`QualifiedIcfCode`.
+Optional feature. Canonical-string serialization for `IcfCode` and
+`QualifiedIcfCode`; `Component`, `Level`, `Qualifier`, and
+`IcfClassEntry` use plain derives instead (so `Component::BodyFunctions`
+serializes as `"BodyFunctions"`, not `"b"`, and `Qualifier` by variant
+name, not digit). The error types have no serde impls.
 
 ## Tests
 
-- Accept-list: `b2`, `b280`, `b2801`, `b28010`, `s730.312`, `d450.12`,
-  `e150+2`, `e150.2`.
+- Accept-list (split across the `code` and `qualified` test modules):
+  bare codes `b2`, `b280`, `b2801`, `b28010`, `s730`, `d450`, `e150`;
+  qualified forms `s730.312`, `d450.12`, `e150+2`, `e150.2`.
 - Reject-list: `b28` (2 digits), `x280` (bad component), `b280.5` (invalid
   qualifier digit), `b280+2` (facilitator on non-`e`), `s730.3124` +
   overlong qualifier strings, empty input.

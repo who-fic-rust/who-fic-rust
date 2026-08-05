@@ -99,8 +99,10 @@ who-fic-rust/ (virtual workspace)
 ```
 
 - `who-fic`, `who-fic-icd`, `who-fic-icf`, `who-fic-ichi` version together
-  (currently 0.2.0). `who-fic-linearization`, `who-fic-claml`,
-  `who-fic-icd-api` version independently (currently 0.1.0 each).
+  (lockstep — see `[workspace.package].version` in the root `Cargo.toml`
+  for the current number). `who-fic-linearization`, `who-fic-claml`,
+  `who-fic-icd-api` version independently (see each crate's own
+  `Cargo.toml`).
 - `who-fic-icd`/`who-fic-icf`/`who-fic-ichi` optionally depend on
   `who-fic-linearization`/`who-fic-claml` (feature-gated: `claml`,
   `linearization`) to add data-loading `*Index` types. `who-fic-icd-api`

@@ -12,9 +12,14 @@ crate: **ICD-10** (legacy, still dominant in many systems) and **ICD-11**
 not share a code type.
 
 ```
-who-fic-icd
+who-fic-icd            (also exports const CLASSIFICATION: &str = "ICD")
 ├── icd10   module: Icd10Code, Icd10Chapter, Icd10ParseError
-└── icd11   module: Icd11Code, Icd11Chapter, Cluster, Icd11ParseError
+│   └── claml           feature-gated: Icd10ClamlIndex, Icd10ClassEntry,
+│                       Icd10ClamlError
+└── icd11   module: Icd11Code, Icd11Chapter, ExtensionCode, Cluster,
+    │       ClusterStem, Icd11ParseError
+    └── linearization   feature-gated: Icd11LinearizationIndex,
+                        Icd11ClassEntry, Icd11LinearizationError
 ```
 
 If a revision's scope grows substantially (data loaders, per-revision
@@ -34,8 +39,9 @@ category    = letter digit digit            ; "A00" … "Z99"
 subdivision = 1*2( digit / letter )         ; commonly one digit, e.g. "I63.9"
 ```
 
-- `Icd10Code` accessors: `category(&self) -> &str` (3 chars),
-  `subdivision(&self) -> Option<&str>`, `chapter(&self) -> Option<Icd10Chapter>`.
+- `Icd10Code` accessors: `as_str(&self) -> &str`, `category(&self) -> &str`
+  (3 chars), `subdivision(&self) -> Option<&str>`,
+  `chapter(&self) -> Option<Icd10Chapter>`.
   `chapter()` returns `Option` rather than a bare `Icd10Chapter`: several
   numeric sub-ranges within an otherwise-assigned letter (e.g. `D49`,
   `E91`–`E99`, `K94`–`K99`) are reserved/unassigned by WHO, so a total
@@ -48,11 +54,14 @@ subdivision = 1*2( digit / letter )         ; commonly one digit, e.g. "I63.9"
 
 ### `Icd10Chapter`
 
-Enum of the 22 chapters (I–XXII). Mapping from code to chapter follows the
-official category ranges (chapter I is `A00–B99`, chapter II `C00–D48`,
-etc. — note chapters are *not* aligned to single letters; e.g. `D50` is
-chapter III, `H00` vs `H60` split chapters VII/VIII). The full range table is
-a structural fact and is encoded in the crate with a unit test per boundary.
+`#[non_exhaustive]` enum of the 22 chapters (I–XXII), with
+`Icd10Chapter::from_category(&str) -> Option<Icd10Chapter>` as the
+standalone range lookup behind `Icd10Code::chapter()`. Mapping from code
+to chapter follows the official category ranges (chapter I is `A00–B99`,
+chapter II `C00–D48`, etc. — note chapters are *not* aligned to single
+letters; e.g. `D50` is chapter III, `H00` vs `H60` split chapters
+VII/VIII). The full range table is a structural fact and is encoded in
+the crate with a unit test per boundary.
 
 ## Module `icd11`
 
@@ -61,8 +70,9 @@ a structural fact and is encoded in the crate with a unit test per boundary.
 ICD-11 distinguishes the *Foundation* (a semantic network of entities with
 URIs) from *linearizations*, chiefly the MMS (Mortality and Morbidity
 Statistics), which is where codes live. This crate models MMS codes.
-Foundation URIs/entity IDs are out of scope for the core crate (they belong
-to the future `who-fic-icd-api` subcrate).
+Foundation URIs/entity IDs are out of scope for the core crate (they
+belong to [`who-fic-icd-api`](who-fic-icd-api.md), the live-API client
+crate).
 
 ### Code syntax
 
@@ -96,13 +106,18 @@ chapter — WHO's reference guide states every code in a chapter shares the
 same first character). Several leading characters (`0`, `T`, `U`, `W`, `Y`,
 `Z`) are unassigned, so `Icd11Code::chapter(&self) -> Option<Icd11Chapter>`
 returns `Option` for the same reason as `Icd10Code::chapter()` above.
-Encoded with boundary unit tests.
+`#[non_exhaustive]`; the char↔chapter mapping is also exposed directly as
+`Icd11Chapter::from_leading_char(char) -> Option<Icd11Chapter>` and
+`leading_char(&self) -> char`. Encoded with boundary unit tests.
+`Icd11Code` additionally exposes `as_str()`, `stem() -> &str`, and
+`subdivision() -> Option<&str>`, mirroring the ICD-10 accessors.
 
 ### `ExtensionCode`
 
 Codes starting with `X`, used only in postcoordination. A distinct type
 from `Icd11Code`, sharing the same 4-char-plus-optional-subdivision
-grammar (e.g. `XA00.6`). `Icd11Code::from_str` rejects `X`-prefixed input;
+grammar and accessors (`as_str`/`stem`/`subdivision`, e.g. `XA00.6`).
+`Icd11Code::from_str` rejects `X`-prefixed input;
 `ExtensionCode::from_str` requires it. Note: this crate's extension-code
 grammar always requires a `.` before the subdivision; WHO's real extension
 codes sometimes use a flat 6-character form without a dot (e.g. `XA0060`) —
@@ -117,18 +132,33 @@ ICD-11 codes combine into clusters:
   `NA07.1/8B20` (varies by convention; both separators occur in cluster
   strings)
 
-`Cluster` and `ClusterStem` parse a cluster string into its parts and
-format it back canonically: a `Cluster` is one or more `/`-separated
-`ClusterStem`s, and each `ClusterStem` is one stem code plus zero or more
-`&`-attached extension codes. **Syntax only**: whether a given extension is
-*permitted* on a given stem requires WHO data and is out of scope (see
-plan.md risks).
+`Cluster` parses a cluster string into its parts and formats it back
+canonically: a `Cluster` is one or more `/`-separated `ClusterStem`s
+(`groups()`, with `stems()`/`extensions()` convenience iterators over
+all groups), and each `ClusterStem` is one stem code plus zero or more
+`&`-attached extension codes (`stem()`, `extensions()`). Only `Cluster`
+implements `FromStr`/`TryFrom<&str>`; `ClusterStem` is a read-only view
+obtained from a parsed `Cluster` (it implements `Display` but cannot be
+constructed or parsed on its own). Neither type is a code type in the
+architecture.md sense: no `as_str()`, no ordering, and — unlike the code
+types — no serde impls under the `serde` feature. **Syntax only**:
+whether a given extension is *permitted* on a given stem requires WHO
+data and is out of scope (see plan.md risks).
 
 ## Errors
 
 `Icd10ParseError` and `Icd11ParseError`, per the shared error shape
 (empty / invalid length / invalid character with position / invalid
-structure). `who-fic` provides `From` conversions to `FicError`.
+structure; both crates' `InvalidLength` reports only `found` — no
+`expected` field). `who-fic` provides `From` conversions to `FicError`.
+
+The two data-loading modules add their own error types. `Icd11LinearizationError`
+wraps `LinearizationError` via `From` (variant `Linearization`, with
+`Error::source`). `Icd10ClamlError` has a single `InvalidCode` variant
+that in practice is never returned — `from_document` takes an
+already-parsed document and skips unparseable codes leniently; its
+rustdoc documents this, and the `Result` signature is kept to match the
+other three indexes (see architecture.md's construction asymmetry note).
 
 ## Data loading (optional)
 
@@ -151,7 +181,8 @@ section only covers what's specific to ICD.
   [`who-fic-linearization`](who-fic-linearization.md)): adapts
   `LinearizationRow`s from the MMS export into a lookup from `Icd11Code` to
   title, residual status, chapter number, and — since MMS rows carry
-  `Grouping1`–`5` — its block-grouping path (`Icd11ClassEntry::groupings()`).
+  `Grouping1`–`5` — its block-grouping path (`Icd11ClassEntry::groupings()`;
+  the entry also carries `class_kind()`).
   `Icd11LinearizationIndex::from_rows(impl Iterator<Item =
   Result<LinearizationRow, LinearizationError>>) -> Result<Self,
   Icd11LinearizationError>`.
@@ -162,9 +193,16 @@ that, see [`who-fic-icd-api`](who-fic-icd-api.md).
 
 ## `serde`
 
-Optional feature; all code types serialize as canonical strings.
+Optional feature. The code types (`Icd10Code`, `Icd11Code`,
+`ExtensionCode`) serialize as canonical strings; the chapter enums and
+`*ClassEntry` types use plain derives. `Cluster`/`ClusterStem` and the
+error types have no serde impls.
 
 ## Tests
+
+All tests are inline `#[cfg(test)]` modules (including the property
+tests) — this is the one crate in the workspace with no `tests/`
+directory.
 
 - Accept-lists: real published codes from both revisions (small factual
   sample: `A00`, `I63.9`, `U07.1`; `8B20`, `CA40.0`, `1A00`, `XK9J`, …).

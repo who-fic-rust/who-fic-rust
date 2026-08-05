@@ -25,12 +25,14 @@ validate, format, and navigate WHO-FIC classification codes:
   user-supplied credentials.
 
 Further subcrates are created as needed using the parent crate's name as a
-prefix; see "Future subcrates" below. Status: all 12 phases shipped, all
-seven crates on crates.io. Current versions: `who-fic`/`who-fic-icd`/
-`who-fic-icf`/`who-fic-ichi` at 0.3.0 (lockstep); `who-fic-linearization`/
-`who-fic-claml`/`who-fic-icd-api` at 0.1.1 (independent). Full detail on
-every phase in [tasks.md](tasks.md); the summary below covers each
-phase's *what and why*, tasks.md covers *what's checked off*.
+prefix; see "Future subcrates" below. Status: all phases through Phase 16
+shipped, all seven crates on crates.io. Current version numbers live in
+the root `Cargo.toml` (`[workspace.package]` for the lockstep group,
+`[workspace.dependencies]` for the independent crates) and in the most
+recent "Published" block of [tasks.md](tasks.md) — not here, where they
+have twice gone stale. Full detail on every phase in tasks.md; the
+summary below covers each phase's *what and why*, tasks.md covers *what's
+checked off*.
 
 ## Background
 
@@ -85,7 +87,8 @@ who-fic-rust/                  (workspace root, virtual manifest)
 ├── who-fic-icf/               ICF crate (components b/s/d/e, qualifiers)
 ├── who-fic-ichi/              ICHI crate (Target–Action–Means axis codes)
 ├── who-fic-linearization/     WHO linearization TSV format parser
-└── who-fic-claml/             ClaML XML format parser
+├── who-fic-claml/             ClaML XML format parser
+└── who-fic-icd-api/           async client for the live WHO ICD-API
 ```
 
 Dependency graph (arrows = "depends on"):
@@ -99,9 +102,13 @@ who-fic-icd  ──(feature claml)──────▶ who-fic-claml           
              ──(feature linearization)▶ who-fic-linearization (icd11 module)
 who-fic-icf  ──(feature linearization)▶ who-fic-linearization
 who-fic-ichi ──(feature linearization)▶ who-fic-linearization
+
+who-fic-icd-api ──(non-optional)────▶ who-fic-icd   (typed-code convenience)
 ```
 
-The subcrates are independent of each other and of `who-fic` (no cycles;
+With one exception — `who-fic-icd-api`'s direct dependency on
+`who-fic-icd` above — the subcrates are independent of each other and of
+`who-fic` (no cycles;
 shared traits are defined in `who-fic` and *implemented* there for the
 subcrates' types via the re-export layer, or the subcrates stay trait-free
 and `who-fic` provides blanket integration — see `specs/who-fic.md`).
@@ -175,7 +182,7 @@ run against CI before this phase). Also fixed an example-target-name
 collision warning across all six crates' identically-named
 `examples/readme.rs`, closed a `#![warn(missing_docs)]` enforcement gap on
 three of seven crates, added crates.io/docs.rs/CI/license badges to every
-README, and rewrote the root README from a 6-line stub into a workspace
+README, and rewrote the root README from a 7-line stub into a workspace
 index.
 
 ### Phase 10 — Dependency auditing, repo hygiene, dogfooding example
@@ -203,6 +210,40 @@ already-published 0.2.0 (`iter()`'s item type changed on two crates).
 Pre-1.0 semver: breaking change bumps minor. Bumped the lockstep group to
 0.3.0 and the three independent crates to 0.1.1 (non-breaking additions
 only), republished all seven.
+
+### Phase 13 — Accuracy pass on plan/tasks/spec/agent docs
+Swept the narrative docs for claims that had drifted from reality: two
+genuinely broken install snippets still pinning `"0.2"`, stale version
+claims, three files misattributing the Index harmonization to the wrong
+phase, and one fabricated testing claim in `AGENTS/testing.md` (asserted,
+checked, found false, removed). Validated the 0.3.0 bump decision with
+`cargo-semver-checks` against the 0.2.0 baseline. Added the missing
+`## Install` sections to the six individual crate READMEs.
+
+### Phase 14 — More examples, FAQ, tutorial expansion
+A second, distinct runnable example for each of the six non-umbrella
+crates (postcoordination clusters, ICF hierarchy walking, ICHI axis
+composition, linearization streaming, ClaML tree walking, live
+search-and-traverse). `FAQ.md` answering the which-crate/licensing/
+validation-depth questions the READMEs kept half-answering. Replaced
+`TUTORIAL.md`'s hand-wavy "download it yourself" with verified, concrete
+WHO download steps.
+
+### Phase 15 — Patch republish for Phase 13/14 content
+Packaged content (READMEs, examples) changed in every crate but no `src/`
+file did — verified per crate before choosing the bump. Patch bump across
+the board: lockstep group 0.3.0 → 0.3.1, independent crates 0.1.1 →
+0.1.2, published in dependency order.
+
+### Phase 16 — Comprehensive audit and doc reconciliation
+Workspace-wide audit comparing every `specs/*.md` claim against the
+implementation, and `plan.md`/`tasks.md` against the git history and
+crates.io state. Fixed the doc drift it found (see tasks.md Phase 16) in
+a docs-only pass — the workspace verified green throughout (fmt, clippy,
+full test suite, CI). The handful of code-level findings (an example bug,
+a serde feature-forwarding gap, a ClaML parser limitation) were deferred
+to tasks.md's "Audit follow-ups" backlog rather than folded in, since
+each wants its own verify-and-republish cycle.
 
 ## Future subcrates (create when needed, not up front)
 
@@ -232,4 +273,5 @@ only), republished all seven.
   --check`, and `cargo doc` all pass for every crate and feature combination.
 - Every public type has rustdoc with at least one tested example.
 - The specs in `specs/` match the implemented behavior.
-- `tasks.md` fully checked off.
+- `tasks.md` fully checked off, excluding its explicitly-unscheduled
+  "Backlog / future subcrates" section.

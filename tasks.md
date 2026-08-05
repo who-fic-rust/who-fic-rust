@@ -89,7 +89,10 @@ See [specs/who-fic-ichi.md](specs/who-fic-ichi.md).
 ## Phase 5 — Integration & polish
 
 - [x] Feature-combination build matrix (`cargo hack --feature-powerset`)
-      for `who-fic` — all 18 combinations (incl. `serde`) pass
+      for `who-fic` — the full powerset of its then-four features
+      (`icd`/`icf`/`ichi`/`serde`) passed; the powerset has since grown
+      with `claml`/`linearization` (64 combinations today) and CI runs it
+      on every push
 - [x] `serde` round-trip integration tests through the umbrella crate
 - [x] Doc tests pass for every crate; intra-doc links resolve
 - [x] Verify specs/*.md match implemented behavior; update where they diverge
@@ -181,6 +184,8 @@ real WHO downloads on 2026-08-03 (see those specs' "verified" notes).
 - [x] `who-fic-ichi` 0.2.0 — https://crates.io/crates/who-fic-ichi
 - [x] `who-fic` 0.2.0 — https://crates.io/crates/who-fic
 - [x] `who-fic-icd-api` 0.1.0 — https://crates.io/crates/who-fic-icd-api
+      (produced by Phase 8, below — listed here so all
+      published-versions blocks stay complete)
 
 ## Phase 8 — `who-fic-icd-api`
 
@@ -218,7 +223,7 @@ commit — this phase found and fixed that, plus a few other rough edges.
 - [x] Bumped `actions/checkout@v4` → `v5` in CI, clearing Node.js 20
       deprecation warnings on every run
 - [x] Added crates.io/docs.rs/CI/license badges to all seven crate
-      READMEs; rewrote the previously-6-line root README into a proper
+      READMEs; rewrote the previously-7-line root README into a proper
       workspace index
 - [x] Closed a `#![warn(missing_docs)]` enforcement gap: `who-fic-icd`,
       `who-fic-ichi`, and `who-fic-linearization` lacked it (the other
@@ -231,10 +236,12 @@ commit — this phase found and fixed that, plus a few other rough edges.
 - [x] Checked for `TODO`/`FIXME`, `#[ignore]`d tests, and clippy
       `#[allow(...)]` suppressions: none found beyond one well-justified,
       already-commented exception
-- [x] Confirmed the 7 source files with no inline `#[test]` module are
-      covered by rustdoc doctests instead (a deliberate, already-passing
-      strategy), except `who-fic-ichi/src/extension.rs`, which is a
-      documentation-only stub by design
+- [x] Confirmed the source files with no inline `#[test]` module (12 of
+      them, recounted in the Phase 16 audit — this entry originally said
+      7) are covered by rustdoc doctests instead (a deliberate,
+      already-passing strategy), except
+      `who-fic-ichi/src/extension.rs`, which is a documentation-only
+      stub by design
 
 ## Phase 10 — Dependency auditing, repo hygiene, dogfooding example (2026-08-04)
 
@@ -314,8 +321,10 @@ bumps the minor version.
       `who-fic/README.md` still pinned `"0.2"`, which can't resolve to
       0.3.0)
 - [x] Fixed `specs/architecture.md`'s stale "currently 0.2.0" version
-      claim; reworded to point at `Cargo.toml` as source of truth instead
-      of a number requiring updates every release
+      claim, adding a pointer at `Cargo.toml` as source of truth — but
+      kept a literal number alongside, which promptly went stale again
+      after Phase 15's bump; the numbers were finally removed outright in
+      Phase 16
 - [x] Fixed three files (`specs/architecture.md`, `AGENTS.md`,
       `AGENTS/testing.md`) that misattributed the Index harmonization to
       "Phase 9" (actually Phase 11)
@@ -330,18 +339,21 @@ bumps the minor version.
 - [x] `plan.md`'s status line and phase list stopped at "Phase 8 in
       progress"; added Phases 9–12 summaries
 - [x] Added missing `## Install` sections to the six individual crate
-      READMEs (only `who-fic`'s README and `TUTORIAL.md` had one);
-      verified all seven version requirements resolve against the live
-      registry by building a throwaway project against them
+      READMEs (previously only `TUTORIAL.md` had one under that name;
+      `who-fic`'s README covers installation under its `## Usage`
+      heading, which it keeps); verified all seven version requirements
+      resolve against the live registry by building a throwaway project
+      against them
 
 ## Phase 14 — More examples, FAQ, tutorial expansion (2026-08-04)
 
-- [x] One new, distinct runnable example per crate (not a README mirror):
-      `postcoordination_cluster.rs` (icd), `hierarchy_walk.rs` (icf),
-      `axis_composition.rs` (ichi), `stream_and_filter.rs`
-      (linearization), `walk_hierarchy.rs` (claml),
-      `search_and_traverse.rs` (icd-api) — each built/run, each crate's
-      README links to its `examples/` directory
+- [x] One new, distinct runnable example for each of the six non-umbrella
+      crates (not a README mirror): `postcoordination_cluster.rs` (icd),
+      `hierarchy_walk.rs` (icf), `axis_composition.rs` (ichi),
+      `stream_and_filter.rs` (linearization), `walk_hierarchy.rs`
+      (claml), `search_and_traverse.rs` (icd-api) — each built/run, and
+      those six crates' READMEs link to their `examples/` directories
+      (`who-fic` itself kept just its readme example and no link)
 - [x] `FAQ.md`: which-crate-do-I-need, offline-vs-live title lookup, why
       no WHO content is bundled, syntax-vs-existence validation, explicit
       non-endorsement for clinical/billing/regulatory use, the
@@ -379,8 +391,104 @@ deciding the bump. Non-breaking: patch bump across the board.
 - [x] `who-fic` 0.3.1 — https://crates.io/crates/who-fic
 - [x] `who-fic-icd-api` 0.1.2 — https://crates.io/crates/who-fic-icd-api
 
+## Phase 16 — Comprehensive audit and doc reconciliation (2026-08-06)
+
+Workspace-wide audit: every claim in `specs/*.md` compared against the
+implementation (five parallel review passes), and `plan.md`/`tasks.md`
+compared against git history, CI, and the crates.io state. Code health
+re-verified first: fmt, clippy `-D warnings`, and the full test suite all
+green; CI green on the latest push; no vendored WHO content anywhere
+(fixture sweep re-confirmed).
+
+- [x] `plan.md`: brought the status line current (it said "12 phases,
+      0.3.0/0.1.1" — two releases and four phases behind), replaced
+      embedded version numbers with pointers to `Cargo.toml`, added
+      `who-fic-icd-api` to the architecture tree and dependency graph
+      (its non-optional dep on `who-fic-icd` was missing), added Phase
+      13–16 summaries, carved the backlog out of the definition of done
+- [x] `tasks.md`: fixed wrong counts ("18 combinations" → the actual
+      then-16/now-64 powerset; "7 source files" → 12; "6-line" README →
+      7), corrected the Phase 13 entries that overstated what was done
+      (the architecture.md version rewording that kept a stale number;
+      the `## Install` claim about `who-fic`'s README), scoped Phase 14's
+      "per crate" example claim to the six crates it actually covered
+- [x] `specs/architecture.md`: removed the twice-stale version numbers;
+      documented the real exceptions to the error conventions
+      (`ParseClassificationError` not `#[non_exhaustive]`, `ClamlError`
+      not `PartialEq`, `Icd10ClamlError` not wrapping `ClamlError`); made
+      the CI job list match `ci.yml` exactly (incl. `msrv` being `cargo
+      check`, not a build); scoped the serde-feature claim to what
+      actually derives it; completed the `who-fic-icd-api` dependency
+      list (`who-fic-icd`, reqwest `json` feature); recorded the
+      `[[example]]` naming rule, the `kind()`/`class_kind()` naming
+      split, and `Cluster`/`ClusterStem` being outside the code-type
+      conventions
+- [x] `specs/who-fic.md`: documented the serde-forwarding gap (see
+      backlog), the real error-shape divergences the `From` impls paper
+      over, `ParseClassificationError`, the all-hyphens `FromStr`
+      leniency, and the single (not per-classification) crate-doc example
+- [x] `specs/who-fic-icd.md`: corrected the module tree (was missing
+      `ExtensionCode`, `ClusterStem`, and both adapter submodules), the
+      "future `who-fic-icd-api`" reference, the `ClusterStem`-parses
+      claim (only `Cluster` parses), and the serde claim (clusters and
+      errors have no serde); noted the crate's inline-tests-only layout
+- [x] `specs/who-fic-icf.md` / `specs/who-fic-ichi.md`: serde scope
+      corrected (enums/entries use plain derives, not canonical strings);
+      ICHI's test list corrected (synthetic accept-list, always-`None`
+      section tests — the old text claimed "real Beta-3 codes" and
+      "section boundary tests" that never existed); documented the
+      `Reader`/`Read` error-variant naming split and entry accessors
+- [x] `specs/who-fic-linearization.md`: documented the real short-line
+      defaults (`false`/`0`, not `None`, for non-`Option` fields),
+      positional (name-unvalidated) column reading, first-char quote
+      detection, CSV-unescaped `BrowserLink`, the inherent-`from_str`
+      shape, the full `LinearizationError` variant list, and the
+      `browser_link()`/`primary_tabulation()` accessors the spec had
+      skipped
+- [x] `specs/who-fic-claml.md`: documented the self-closing-only
+      `SuperClass`/`SubClass` limitation (see backlog), unvalidated root
+      element, optional `kind`, `ModifierClass` rubrics, trait-`FromStr`
+      shape, non-streaming `from_reader`, `ClamlError` variants, and
+      `quick-xml` being semver-public via `ClamlError::Xml`
+- [x] `specs/who-fic-icd-api.md`: documented `Auth(String)` and the
+      token-endpoint error carve-out, the unread `token_type`, the
+      `Icd10Entity = Entity` alias, the `SearchResults`/
+      `SearchResultEntity`/`LangString` shapes, builder method names, the
+      no-features/required-serde stance, percent-encoding, and the
+      mutex-held-across-refresh tradeoff
+- [x] `AGENTS.md`: fixed the version claim ("currently 0.2.0/0.1.0" —
+      two releases stale) to point at `Cargo.toml` instead of a number
+- [x] `CHANGELOG.md`: scoped the 0.3.1 entry's "every crate gained a
+      second runnable example" to the six crates it actually covered
+
 ## Backlog / future subcrates (not scheduled)
 
 - [ ] Semantic cluster validation for ICD-11 postcoordination (needs WHO data)
 - [ ] Split `who-fic-icd` into `who-fic-icd-10` / `who-fic-icd-11` if the
       revisions grow enough to justify it
+
+### Code follow-ups surfaced by the Phase 16 audit (not scheduled)
+
+Found while auditing, deliberately *not* fixed in the docs-only Phase 16
+pass because each changes shipped crate behavior/packaging and so wants
+its own verify-and-republish cycle:
+
+- [ ] **Bug** — `who-fic-icd-api/examples/search_and_traverse.rs` line
+      ~42 passes a full foundation *URI* to `client.entity()`, which
+      expects the bare numeric ID (the same file does the correct
+      `rsplit('/')` extraction ten lines later); the first live call in
+      the example 404s
+- [ ] **Feature-wiring gap** — `who-fic`'s `serde` feature doesn't reach
+      `who-fic-linearization`/`who-fic-claml` (e.g. via
+      `who-fic-icd/serde` forwarding to its optional deps), so
+      `serde` + `linearization`/`claml` through the umbrella leaves
+      `LinearizationRow`/`ClamlDocument` unserializable
+- [ ] **Parser gap** — `who-fic-claml` silently drops `SuperClass`/
+      `SubClass` written as start/end tag pairs instead of self-closing
+      tags (the two forms are equivalent well-formed XML; only the
+      self-closing form is recognized)
+- [ ] Consider serde impls for `Cluster`/`ClusterStem` (canonical-string,
+      like the code types) — currently the only value types in
+      `who-fic-icd` without them
+- [ ] Rustdoc examples for `Icd11ClassEntry`'s six accessors (the
+      parallel `Icd10ClassEntry` accessors all have them)

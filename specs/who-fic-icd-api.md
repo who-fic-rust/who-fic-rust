@@ -32,7 +32,9 @@ below are taken directly from that spec, not guessed.
 - Body (`application/x-www-form-urlencoded`): `grant_type=client_credentials`,
   `scope=icdapi_access`, `client_id=...`, `client_secret=...`
 - Response JSON: `access_token`, `token_type` (`"Bearer"`), `expires_in`
-  (seconds, observed ~3600).
+  (seconds, observed ~3600). The client reads `access_token` and
+  `expires_in` only; `token_type` is not modeled — the Bearer scheme is
+  what WHO issues, and the client sends it unconditionally.
 - Every API request thereafter carries `Authorization: Bearer <access_token>`.
 
 ### Required headers on every API request
@@ -59,9 +61,16 @@ through as plain strings this crate does not further validate — WHO
 controls what values are valid, and hardcoding assumptions here (e.g.
 which releases exist) would drift. Callers may pass `Icd10Code`/`Icd11Code`
 values via `.as_str()`, or raw strings for foundation-only lookups that
-don't have a corresponding local type.
+don't have a corresponding local type. Note `entity()` takes the bare
+numeric foundation ID, **not** the full `http://id.who.int/icd/entity/…`
+URI that appears in response `id` fields — extract the trailing segment
+first. The crate does percent-encode every path segment and query value
+it interpolates (hand-rolled, unit-tested encoders; the base URLs are
+trailing-slash-normalized), so a full URI passed by mistake produces a
+well-formed request for a nonexistent entity, typically surfacing as
+`IcdApiError::Status` with a 404.
 
-Endpoints present in the spec but **not implemented** in v1 of this crate
+Endpoints present in the spec but **not implemented** in this crate
 (document as future extension, don't stub): `/icd/entity/autocode`,
 `/icd/release/11/{releaseId}/{linearizationname}/autocode`,
 `/icd/release/11/{releaseId}/{linearizationname}/describe`,
@@ -99,6 +108,16 @@ on an unrecognized field)
   Vec<String>>` of axis-name → value-URI-list) rather than named fields,
   after extracting the known fixed fields (`@id`/`code`/`stemId`/`stemCode`)
 
+`SearchResults` (from both search endpoints): `error: bool` +
+`errorMessage` (WHO reports some failures in-band in a 200 body), `words`,
+and `destinationEntities: Vec<SearchResultEntity>`, where
+`SearchResultEntity` carries `id` (accepting `@id` as an alias), `title`,
+`score`, `stemId`, and `chapter`. Language-tagged strings deserialize via
+a shared `LangString` (`@language`/`@value`). All response types are
+`Deserialize`-only (nothing in this crate serializes responses back out),
+and `Icd10Entity` is a type alias for `Entity` — the ICD-10 endpoint
+returns the same shape, the alias just keeps signatures self-describing.
+
 ## Design
 
 ### `IcdApiClient`
@@ -132,12 +151,18 @@ but was missing from an earlier draft of this method list; the
 `*_typed` methods are the "Typed-code convenience" described below, listed
 here too for a complete signature reference.)
 
-`IcdApiClientBuilder` configures: `client_id`/`client_secret` (required,
-taken by `builder()`), `language` (default `"en"`), `token_url` and
-`api_base_url` (default the real WHO URLs; overridable — this is the hook
-that makes the crate testable without live WHO credentials, by pointing at
-a local mock server), and an optional pre-built `reqwest::Client` (so
-callers can share a connection pool / configure proxies / TLS).
+`IcdApiClientBuilder` configures, via methods of the same names:
+`client_id`/`client_secret` (required, taken by `builder()`),
+`.language(...)` (default `"en"`), `.token_url(...)` and
+`.api_base_url(...)` (default the real WHO URLs; overridable — this is
+the hook that makes the crate testable without live WHO credentials, by
+pointing at a local mock server), an optional pre-built
+`.http_client(reqwest::Client)` (so callers can share a connection pool /
+configure proxies / TLS), and `.build()`.
+
+This crate has no `[features]` table — `serde` is a required dependency
+(the client cannot function without deserializing WHO's JSON), unlike the
+optional-`serde` convention elsewhere in the workspace.
 
 No blocking/sync API — async only, via `reqwest`, matching modern Rust
 HTTP client conventions. The crate does not bundle a Tokio runtime; callers
@@ -145,19 +170,24 @@ supply their own (standard practice for async libraries).
 
 ### Token management
 
-The client caches its OAuth2 access token in memory (behind a
-`tokio::sync::Mutex` or `RwLock`, since multiple concurrent requests must
-not each fetch a fresh token) and transparently refetches it once expired
-(track `expires_in` against a captured timestamp with a small safety
-margin, e.g. refresh 60 seconds before actual expiry). Token fetch
-failures surface as `IcdApiError::Auth`.
+The client caches its OAuth2 access token in memory behind a
+`tokio::sync::Mutex` held *across* the refresh fetch — so concurrent
+requests never each fetch a fresh token, at the accepted cost that all
+requests briefly serialize behind an in-flight refresh — and
+transparently refetches once expired (tracking `expires_in` against a
+captured timestamp, refreshing 60 seconds before actual expiry). Token
+fetch failures surface as `IcdApiError::Auth` — including non-2xx
+*token-endpoint* responses and malformed token JSON, which map to `Auth`,
+not `Status`/`Decode` (those two describe API-endpoint responses only).
 
 ### `IcdApiError`
 
 `#[non_exhaustive]`, `std::error::Error + Display + Debug`. Variants at
-minimum: `Auth` (token fetch/refresh failed), `Http` (transport-level
-`reqwest::Error`), `Status { status: u16, body: String }` (a non-2xx
-response), `Decode` (response body didn't parse as expected JSON shape).
+minimum: `Auth(String)` (token fetch/refresh failed — carries a
+description, see the token-endpoint carve-out above), `Http`
+(transport-level `reqwest::Error`), `Status { status: u16, body: String }`
+(a non-2xx *API* response), `Decode` (an API response body didn't parse
+as the expected JSON shape).
 
 ### Typed-code convenience
 

@@ -36,8 +36,23 @@ The `.txt` is:
   being either quoted-CSV-style or bare, not assume one or the other.
 - Trailing empty fields on a line may be omitted (short line) rather than
   present as empty tab-separated slots — the parser must not require every
-  row to have exactly the header's column count; missing trailing columns
-  default to empty/`None`.
+  row to have exactly the header's column count. Missing trailing columns
+  default per field type: `Option`-typed fields to `None`, booleans to
+  `false`, integers to `0` — so for the non-`Option` fields
+  (`is_residual`, `is_leaf`, `depth_in_kind`,
+  `no_of_non_residual_children`) a short line is indistinguishable from
+  an explicit `False`/`0`.
+- Quoted-vs-bare is detected from the field's first character only: a
+  field starting with `"` is parsed as quoted-CSV (so a *bare* field that
+  merely begins with a quote is a parse error, not taken literally).
+  Boolean fields parse case-insensitively (`True`/`TRUE`/`true`). Blank
+  lines between rows are skipped. Quoted fields cannot contain embedded
+  newlines — reading is line-oriented.
+- Columns are read *positionally*; the header is consulted only to detect
+  the MMS layout (presence of a `Grouping1` column, done lazily on the
+  first row read). Column *names* are not otherwise validated — a file
+  with the right column count but reordered columns parses silently into
+  the wrong fields.
 
 ### Header/columns
 
@@ -55,7 +70,7 @@ Common to all three classifications (MMS, ICF, ICHI):
 | 8 | `IsResidual` | `True`/`False` |
 | 9 | `PrimaryLocation` | `True`/`False`/empty |
 | 10 | `ChapterNo` | e.g. `01`; empty for ICF/ICHI in practice |
-| 11 | `BrowserLink` | an Excel `=hyperlink(...)` formula string — expose raw, don't parse it |
+| 11 | `BrowserLink` | an Excel `=hyperlink(...)` formula string — exposed after the standard CSV unquoting (outer quotes stripped, `""` → `"`) but not otherwise parsed |
 | 12 | `isLeaf` | `True`/`False` |
 | 13 | `noOfNonResidualChildren` | integer |
 | trailing | `Version:<timestamp>` | the header's last column name embeds the export timestamp; there is no corresponding data column — this is a header-only artifact, not a real 14th field |
@@ -69,24 +84,35 @@ Common to all three classifications (MMS, ICF, ICHI):
 
 ## Types
 
-- `LinearizationRow` — one row, all fields above as typed accessors
+- `LinearizationRow` (`Clone + Debug + PartialEq + Eq`) — one row, all
+  fields above as typed accessors
   (`foundation_uri() -> Option<&str>`, `linearization_uri() -> &str`,
   `code() -> Option<&str>`, `block_id() -> Option<&str>`,
   `title() -> &str` — depth markers stripped, `class_kind() -> &str`,
   `depth_in_kind() -> u32`, `is_residual() -> bool`,
   `primary_location() -> Option<bool>`, `chapter_no() -> Option<&str>`,
-  `is_leaf() -> bool`, `no_of_non_residual_children() -> u32`,
-  `groupings() -> &[String]` — empty unless the file had the MMS-only
-  columns).
-- `LinearizationReader<R: std::io::Read>` — streaming row iterator
-  (`Iterator<Item = Result<LinearizationRow, LinearizationError>>`) so
-  callers don't have to load a multi-megabyte export into memory at once.
-  A `LinearizationReader::from_str(&str)` / `::from_reader(R)` constructor.
-- `LinearizationError` — per the shared error shape where it fits
-  (this crate is not a WHO-FIC *code* crate, so it does not need to match
-  `FicError` variant-for-variant, but should still be
-  `std::error::Error + Display + Debug`, and should report the 1-based
-  line number of a malformed row).
+  `browser_link() -> Option<&str>`, `is_leaf() -> bool`,
+  `no_of_non_residual_children() -> u32`,
+  `primary_tabulation() -> Option<bool>` and
+  `groupings() -> &[String]` — the last two `None`/empty unless the file
+  had the MMS-only columns).
+- `LinearizationReader<R>` — streaming row iterator
+  (`Iterator<Item = Result<LinearizationRow, LinearizationError>>` where
+  `R: std::io::Read`; the bound sits on the impls, the struct itself is
+  unbounded) so callers don't have to load a multi-megabyte export into
+  memory at once. The header line is consumed lazily by the first
+  `next()`. Constructors: `::from_reader(R)`, plus an *inherent* (not
+  trait) `LinearizationReader::from_str(&str)` defined only on the
+  concrete `LinearizationReader<Cursor<Vec<u8>>>` — it copies the input,
+  trading an allocation for a simple return type.
+- `LinearizationError` (`#[non_exhaustive]`, `Clone + Debug + PartialEq +
+  Eq`, `std::error::Error + Display`) — variants `Io { line, message }`,
+  `UnterminatedQuotedField { line }`, `TrailingDataAfterQuotedField {
+  line }`, `InvalidBoolean { line, field, found }`, `InvalidInteger {
+  line, field, found }`, with `line() -> usize` reporting the 1-based
+  line number (the header counts as line 1). This crate is not a WHO-FIC
+  *code* crate, so the shape deliberately doesn't match `FicError`
+  variant-for-variant.
 
 ## Non-goals
 
@@ -101,7 +127,10 @@ Common to all three classifications (MMS, ICF, ICHI):
 
 Optional feature; derive `Serialize`/`Deserialize` on `LinearizationRow`
 (it's a plain data struct here, unlike the code types elsewhere in the
-workspace — there's no canonical single-string form to round-trip through).
+workspace — there's no canonical single-string form to round-trip
+through). Side effect worth knowing: `Deserialize` is the one way to
+construct a `LinearizationRow` outside this crate — there is otherwise no
+public constructor. Round-trip tests live in `tests/serde.rs`.
 
 ## Tests
 
@@ -111,4 +140,6 @@ export files. Cover: a `chapter` row, a `block` row, a `category` row, a
 residual (`.Y`/`.Z`) row with empty `Foundation URI`, a short line missing
 trailing columns, an MMS-style row with `Grouping` columns present, an
 ICF/ICHI-style row without them, a malformed line (wrong quoting) — with
-the expected `LinearizationError` and line number.
+the expected `LinearizationError` and line number. `tests/proptest.rs`
+adds property tests (parser never panics on arbitrary input, among
+others).

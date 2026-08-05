@@ -73,8 +73,10 @@ for Beta-3 (anatomy targets, ICF-derived body-function targets, and other
 categories interleave on shared leading letters), so
 `Target::section(&self) -> Option<Section>` and `IchiCode::section()`
 currently always return `None`, per the spec's explicit fallback clause.
-Rustdoc on `section()` explains why and what would be needed to upgrade it
-(a confirmed WHO Beta-3 leading-character/chapter table).
+The full rationale — and what would be needed to upgrade it (a confirmed
+WHO Beta-3 leading-character/chapter table) — lives in the rustdoc on the
+`Section` *type*; the `section()` methods state the always-`None` behavior
+and link there.
 
 ### Extension codes
 
@@ -87,8 +89,11 @@ firm. Recorded in tasks.md backlog.
 ## Errors
 
 `IchiParseError` per the shared error shape, plus an `axis: Option<Axis>`
-field on every variant (including `Empty`) (`Axis = Target | Action |
-Means`) identifying which dot-segment of the code failed to parse; `None`
+field on every variant (including `Empty`, which is a struct variant here
+for that reason) (`Axis = Target | Action | Means`, itself a public
+`#[non_exhaustive]` enum whose `Display` prints
+`"target"`/`"action"`/`"means"`) identifying which dot-segment of the
+code failed to parse; `None`
 when the failure isn't attributable to a single segment (e.g. the whole
 input was empty, or the dotted structure itself was wrong — missing
 separators, wrong segment count). `who-fic`'s `From<IchiParseError> for
@@ -109,7 +114,10 @@ shape as `who-fic-icf`'s `linearization` feature.
 `IchiLinearizationIndex::from_rows(impl Iterator<Item = Result<LinearizationRow,
 LinearizationError>>) -> Result<Self, IchiLinearizationError>` — takes
 exactly what a `LinearizationReader` yields; a reader-level `Err`
-propagates immediately. Rows whose `Code` doesn't
+propagates immediately as `IchiLinearizationError::Read` (wrapping
+`LinearizationError` via `From`; `who-fic-icf` names its equivalent
+variant `Reader`). `IchiClassEntry` carries
+`code()`/`title()`/`class_kind()`. Rows whose `Code` doesn't
 parse as an `IchiCode` are skipped rather than treated as fatal (in
 practice this includes a small number of `(proposed)` Beta-3 entries still
 using a placeholder `??` target). Retaining the block-title hierarchy
@@ -120,16 +128,22 @@ future extension of this index, not part of its initial scope.
 
 ## `serde`
 
-Optional feature; `IchiCode` and the axis types serialize as canonical
-strings.
+Optional feature. `IchiCode` and the axis types serialize as canonical
+strings; `Section`, `Axis`, and `IchiClassEntry` use plain derives
+(variant/field names). The error types have no serde impls.
 
 ## Tests
 
-- Accept-list: `KAB.DB.AD` and a small sample of real Beta-3 codes across
-  all three sections.
+- Accept-list: `KAB.DB.AD` (a real Beta-3 code) plus deliberately
+  *synthetic* grammar-shaped codes (`AAA.FA.AE`, `VBA.PQ.ZZ`,
+  `XZZ.AA.00`, `000.00.00`) — the test module states explicitly that only
+  `KAB.DB.AD` is asserted to be a code WHO actually assigned — the
+  grammar, not WHO's catalog, is what's under test.
 - Reject-list: wrong segment lengths (`KA.DB.AD`, `KAB.D.AD`), missing or
   wrong separators (`KAB-DB-AD`, `KABDBAD`), lowercase canonicalization
   check, invalid characters, empty input, trailing garbage.
 - `from_parts` ∘ accessors is identity; dotted round trip.
-- Section boundary tests for the target ranges.
+- Section: tests assert the documented always-`None` fallback (for
+  `section_for_target`, `Target::section()`, and `IchiCode::section()`)
+  — there are no range boundaries to test until a verified table exists.
 - Property tests: round trip; arbitrary input never panics.
