@@ -31,3 +31,8 @@ path = "examples/readme.rs"
 
 [dev-dependencies]
 serde_json = "1.0.151"
+# For the serde feature-forwarding regression tests (tests/serde_forwarding.rs):
+# the same crate instances the `linearization`/`claml` features activate, so
+# the tests can name the parser types the umbrella doesn't re-export.
+who-fic-linearization = { workspace = true }
+who-fic-claml = { workspace = true }

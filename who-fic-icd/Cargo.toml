@@ -17,7 +17,7 @@ who-fic-claml = { workspace = true, optional = true }
 who-fic-linearization = { workspace = true, optional = true }
 
 [features]
-serde = ["dep:serde"]
+serde = ["dep:serde", "who-fic-claml?/serde", "who-fic-linearization?/serde"]
 claml = ["dep:who-fic-claml"]
 linearization = ["dep:who-fic-linearization"]
 

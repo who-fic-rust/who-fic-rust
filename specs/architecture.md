@@ -186,14 +186,13 @@ Umbrella crate `who-fic`:
   All three are default features.
 - `serde`, `claml`, `linearization` — each forwards to every enabled
   *classification* subcrate's matching feature (`"who-fic-icd?/serde"`
-  syntax). Known gap (tracked in tasks.md's backlog): the `serde` forward
-  stops at the classification crates — enabling `who-fic` with
-  `serde` + `linearization`/`claml` does **not** enable
-  `who-fic-linearization`'s or `who-fic-claml`'s own `serde` feature, so
-  `LinearizationRow`/`ClamlDocument` reached through the umbrella are not
-  serializable; depend on the parser crate directly with its `serde`
-  feature if you need that. `who-fic`'s own `Classification`/`FicError`
-  types have no serde impls either.
+  syntax). The classification crates' own `serde` features in turn
+  weakly forward to their optional parser deps
+  (`"who-fic-linearization?/serde"`, `"who-fic-claml?/serde"`), so
+  `serde` + `linearization`/`claml` through the umbrella makes
+  `LinearizationRow`/`ClamlDocument` serializable too (a real gap
+  through 0.3.1, fixed in 0.3.2). `who-fic`'s own
+  `Classification`/`FicError` types have no serde impls.
 
 ## Dependencies
 

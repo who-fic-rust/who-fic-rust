@@ -11,6 +11,32 @@ crates with their own independent version.
 
 ## [Unreleased]
 
+## who-fic / who-fic-icd / who-fic-icf / who-fic-ichi / who-fic-claml / who-fic-icd-api [0.3.2 / 0.1.3] - 2026-08-06
+
+Non-breaking fixes for the three defects found by the Phase 16
+workspace audit (`who-fic-linearization` was not affected and stays at
+0.1.2).
+
+### Fixed
+
+- `who-fic-icd`/`who-fic-icf`/`who-fic-ichi`: the `serde` feature now
+  weakly forwards to the optional parser dependencies
+  (`who-fic-linearization?/serde`, and `who-fic-claml?/serde` on
+  `who-fic-icd`), so enabling `serde` together with
+  `linearization`/`claml` — directly or through the `who-fic` umbrella —
+  makes `LinearizationRow`/`ClamlDocument` serializable, as the
+  umbrella's README already claimed. Regression-tested in
+  `who-fic/tests/serde_forwarding.rs`.
+- `who-fic-claml`: `SuperClass`/`SubClass` elements written as start/end
+  tag pairs (`<SuperClass code="..."></SuperClass>`) are now parsed like
+  the equivalent self-closing form instead of being silently dropped.
+- `who-fic-icd-api`: `examples/search_and_traverse.rs` extracted the
+  foundation ID for its second `entity()` call but passed the full URI to
+  its first, which made that call 404 against the live API; both now
+  extract the ID.
+- `who-fic`: republished for the lockstep bump; its own change is the new
+  regression-test file and two parser-crate dev-dependencies.
+
 ## who-fic / who-fic-icd / who-fic-icf / who-fic-ichi / who-fic-linearization / who-fic-claml / who-fic-icd-api [0.3.1 / 0.1.2] - 2026-08-04
 
 Non-breaking: each of the six non-umbrella crates gained a second

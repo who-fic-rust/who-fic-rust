@@ -672,6 +672,29 @@ mod tests {
     }
 
     #[test]
+    fn parses_super_and_sub_class_start_end_pair_form() {
+        // `<SuperClass code="..."></SuperClass>` is equivalent well-formed
+        // XML to the usual self-closing `<SuperClass code="..."/>`; both
+        // forms must be recognized (the pair form used to be silently
+        // dropped).
+        let xml = r#"
+<ClaML version="2.0">
+  <Class code="A00" kind="category">
+    <SuperClass code="A00-A09"></SuperClass>
+    <SubClass code="A00.0"></SubClass>
+    <SubClass code="A00.1"/>
+    <Rubric kind="preferred"><Label xml:lang="en">Cholera</Label></Rubric>
+  </Class>
+</ClaML>
+"#;
+        let doc = ClamlDocument::from_str(xml).unwrap();
+        let class = &doc.classes()[0];
+        assert_eq!(class.super_classes(), ["A00-A09"]);
+        assert_eq!(class.sub_classes(), ["A00.0", "A00.1"]);
+        assert_eq!(class.preferred_label("en"), Some("Cholera"));
+    }
+
+    #[test]
     fn parses_modifier_class_and_modifiers() {
         let doc = fixture();
         assert_eq!(doc.modifier_classes().len(), 1);

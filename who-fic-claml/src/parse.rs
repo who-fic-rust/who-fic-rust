@@ -225,6 +225,21 @@ fn parse_class(reader: &mut Reader<&[u8]>, start: &BytesStart<'_>) -> Result<Cla
             }
             Event::Start(e) => match e.local_name().as_ref() {
                 b"Rubric" => rubrics.push(parse_rubric(reader, &e)?),
+                // A start/end pair (`<SuperClass code="..."></SuperClass>`)
+                // is equivalent XML to the usual self-closing form below —
+                // record it, then consume through its end tag.
+                b"SuperClass" => {
+                    if let Some(code) = attr_value(&e, "code", reader)? {
+                        super_classes.push(code);
+                    }
+                    skip_element(reader)?;
+                }
+                b"SubClass" => {
+                    if let Some(code) = attr_value(&e, "code", reader)? {
+                        sub_classes.push(code);
+                    }
+                    skip_element(reader)?;
+                }
                 _ => skip_element(reader)?,
             },
             Event::Empty(e) => match e.local_name().as_ref() {

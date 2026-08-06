@@ -25,7 +25,7 @@ validate, format, and navigate WHO-FIC classification codes:
   user-supplied credentials.
 
 Further subcrates are created as needed using the parent crate's name as a
-prefix; see "Future subcrates" below. Status: all phases through Phase 16
+prefix; see "Future subcrates" below. Status: all phases through Phase 17
 shipped, all seven crates on crates.io. Current version numbers live in
 the root `Cargo.toml` (`[workspace.package]` for the lockstep group,
 `[workspace.dependencies]` for the independent crates) and in the most
@@ -244,6 +244,16 @@ full test suite, CI). The handful of code-level findings (an example bug,
 a serde feature-forwarding gap, a ClaML parser limitation) were deferred
 to tasks.md's "Audit follow-ups" backlog rather than folded in, since
 each wants its own verify-and-republish cycle.
+
+### Phase 17 — Fix the three audit defects, republish
+The example-URI bug in `who-fic-icd-api`, the serde feature-forwarding
+gap (fixed with weak `?/serde` forwarding in the classification crates,
+plus a regression test through the umbrella), and `who-fic-claml`'s
+silently-dropped start/end-pair `SuperClass`/`SubClass` form. Each fix
+makes behavior match what the docs already promised — patch bumps:
+lockstep 0.3.1 → 0.3.2, `who-fic-claml`/`who-fic-icd-api` 0.1.2 → 0.1.3
+(`who-fic-linearization` untouched at 0.1.2), validated with
+`cargo-semver-checks` and republished in dependency order.
 
 ## Future subcrates (create when needed, not up front)
 

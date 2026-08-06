@@ -16,7 +16,7 @@ serde = { version = "1.0.229", features = ["derive"], optional = true }
 who-fic-linearization = { workspace = true, optional = true }
 
 [features]
-serde = ["dep:serde"]
+serde = ["dep:serde", "who-fic-linearization?/serde"]
 linearization = ["dep:who-fic-linearization"]
 
 [[example]]

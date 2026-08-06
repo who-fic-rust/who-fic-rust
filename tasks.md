@@ -461,6 +461,46 @@ green; CI green on the latest push; no vendored WHO content anywhere
 - [x] `CHANGELOG.md`: scoped the 0.3.1 entry's "every crate gained a
       second runnable example" to the six crates it actually covered
 
+## Phase 17 — Fix the three audit defects, republish (2026-08-06)
+
+The three code-level defects from Phase 16's audit, fixed with regression
+tests and shipped. Patch bumps: each fix makes behavior match what the
+docs already promised, adding no new API surface.
+
+- [x] `who-fic-icd-api/examples/search_and_traverse.rs`: extract the
+      trailing numeric foundation ID from the search hit's URI before
+      calling `client.entity()` (the call previously sent the full
+      percent-encoded URI and 404'd)
+- [x] serde feature forwarding: `who-fic-icd`'s `serde` feature now
+      weakly forwards to `who-fic-claml?/serde` and
+      `who-fic-linearization?/serde` (likewise `who-fic-icf`/
+      `who-fic-ichi` for linearization), so `serde` +
+      `linearization`/`claml` through the umbrella — or through the
+      classification crates directly — makes `LinearizationRow`/
+      `ClamlDocument` serializable, as `who-fic`'s README always claimed.
+      Regression test: `who-fic/tests/serde_forwarding.rs` (new dev-deps
+      on the two parser crates to name their types)
+- [x] `who-fic-claml`: `SuperClass`/`SubClass` in start/end-tag pair form
+      (`<SuperClass code="..."></SuperClass>`) are now recognized, not
+      silently dropped; new unit test covering both elements in both
+      forms
+- [x] Specs updated in the same change (`who-fic.md`, `architecture.md`,
+      `who-fic-claml.md` — gap language replaced with the fixed behavior
+      and version boundary)
+- [x] Full workspace verification (fmt, clippy, three test matrices, doc,
+      feature powerset), `cargo semver-checks` against the published
+      baselines, publish in dependency order, push, CI verified green
+
+## Published (0.3.2 / 0.1.3 / 0.1.2)
+
+- [x] `who-fic-claml` 0.1.3 — https://crates.io/crates/who-fic-claml
+- [x] `who-fic-icd` 0.3.2 — https://crates.io/crates/who-fic-icd
+- [x] `who-fic-icf` 0.3.2 — https://crates.io/crates/who-fic-icf
+- [x] `who-fic-ichi` 0.3.2 — https://crates.io/crates/who-fic-ichi
+- [x] `who-fic` 0.3.2 — https://crates.io/crates/who-fic
+- [x] `who-fic-icd-api` 0.1.3 — https://crates.io/crates/who-fic-icd-api
+- [x] `who-fic-linearization` stays 0.1.2 — unchanged this round
+
 ## Backlog / future subcrates (not scheduled)
 
 - [ ] Semantic cluster validation for ICD-11 postcoordination (needs WHO data)
@@ -469,24 +509,10 @@ green; CI green on the latest push; no vendored WHO content anywhere
 
 ### Code follow-ups surfaced by the Phase 16 audit (not scheduled)
 
-Found while auditing, deliberately *not* fixed in the docs-only Phase 16
-pass because each changes shipped crate behavior/packaging and so wants
-its own verify-and-republish cycle:
+The three concrete defects the audit found were fixed and shipped in
+Phase 17 (below). Still open, judgment-call improvements rather than
+defects:
 
-- [ ] **Bug** — `who-fic-icd-api/examples/search_and_traverse.rs` line
-      ~42 passes a full foundation *URI* to `client.entity()`, which
-      expects the bare numeric ID (the same file does the correct
-      `rsplit('/')` extraction ten lines later); the first live call in
-      the example 404s
-- [ ] **Feature-wiring gap** — `who-fic`'s `serde` feature doesn't reach
-      `who-fic-linearization`/`who-fic-claml` (e.g. via
-      `who-fic-icd/serde` forwarding to its optional deps), so
-      `serde` + `linearization`/`claml` through the umbrella leaves
-      `LinearizationRow`/`ClamlDocument` unserializable
-- [ ] **Parser gap** — `who-fic-claml` silently drops `SuperClass`/
-      `SubClass` written as start/end tag pairs instead of self-closing
-      tags (the two forms are equivalent well-formed XML; only the
-      self-closing form is recognized)
 - [ ] Consider serde impls for `Cluster`/`ClusterStem` (canonical-string,
       like the code types) — currently the only value types in
       `who-fic-icd` without them

@@ -47,11 +47,11 @@ document, not an error.)
   normally has zero (root-level chapters) or one `SuperClass`; the DTD
   permits more than one in principle (multiple-inheritance classifications)
   — the parser collects all `SuperClass` elements present, not just the
-  first. **Known limitation (tracked in tasks.md's backlog):**
-  `SuperClass`/`SubClass` are recognized only in self-closing form
-  (`<SuperClass code="..."/>`); the equivalent — and equally well-formed —
-  start/end-tag pair form (`<SuperClass code="..."></SuperClass>`) is
-  silently skipped, losing that hierarchy link.
+  first. Both the self-closing form (`<SuperClass code="..."/>`) and the
+  equivalent start/end-tag pair form
+  (`<SuperClass code="..."></SuperClass>`) are recognized, for
+  `SuperClass` and `SubClass` alike (the pair form was silently dropped
+  through 0.1.2; fixed in 0.1.3).
 - `SubClass code="..."` elements are a redundant forward-reference list of
   children; useful for hierarchy traversal without a second pass, but
   derivable from `SuperClass` alone. Parse them, but don't treat them as
@@ -124,7 +124,7 @@ the shape above, using ICD-10 codes already used as examples elsewhere in
 this workspace, e.g. `A00`) — do not vendor WHO's actual ICD-10 ClaML
 export. Cover: a class with a preferred rubric and an inclusion rubric,
 a class with multiple `SubClass` entries, a class with more than one
-`SuperClass`, a `ModifierClass`/`Modifier` pair, malformed XML (unclosed
-tag), a `Class` missing its `code` attribute. All tests are inline unit
-tests in `src/lib.rs` (no `tests/` directory; this crate has no property
-tests).
+`SuperClass`, `SuperClass`/`SubClass` in start/end-tag pair form, a
+`ModifierClass`/`Modifier` pair, malformed XML (unclosed tag), a `Class`
+missing its `code` attribute. All tests are inline unit tests in
+`src/lib.rs` (no `tests/` directory; this crate has no property tests).

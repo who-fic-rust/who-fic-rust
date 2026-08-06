@@ -1752,17 +1752,19 @@ dependencies = [
 
 [[package]]
 name = "who-fic"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "serde_json",
+ "who-fic-claml",
  "who-fic-icd",
  "who-fic-icf",
  "who-fic-ichi",
+ "who-fic-linearization",
 ]
 
 [[package]]
 name = "who-fic-claml"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "quick-xml",
  "serde",
@@ -1771,7 +1773,7 @@ dependencies = [
 
 [[package]]
 name = "who-fic-icd"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "proptest",
  "serde",
@@ -1782,7 +1784,7 @@ dependencies = [
 
 [[package]]
 name = "who-fic-icd-api"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "reqwest",
  "serde",
@@ -1794,7 +1796,7 @@ dependencies = [
 
 [[package]]
 name = "who-fic-icf"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "proptest",
  "serde",
@@ -1804,7 +1806,7 @@ dependencies = [
 
 [[package]]
 name = "who-fic-ichi"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "proptest",
  "serde",

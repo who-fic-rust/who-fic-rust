@@ -39,7 +39,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Follow the first hit's parent entities, one level up.
     if let Some(first) = results.destination_entities.first() {
-        let entity = client.entity(&first.id).await?;
+        // `id` is a full URI, e.g. "http://id.who.int/icd/entity/257068234";
+        // entity() expects only the trailing numeric foundation ID.
+        let foundation_id = first.id.rsplit('/').next().unwrap_or(&first.id);
+        let entity = client.entity(foundation_id).await?;
         println!(
             "\n{} has {} parent(s):",
             entity.title.value,

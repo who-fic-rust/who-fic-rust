@@ -12,7 +12,7 @@ plus feature-gated re-exports.
 | `icd` | yes | depends on and re-exports `who-fic-icd` as `who_fic::icd` |
 | `icf` | yes | depends on and re-exports `who-fic-icf` as `who_fic::icf` |
 | `ichi` | yes | depends on and re-exports `who-fic-ichi` as `who_fic::ichi` |
-| `serde` | no | forwards to each enabled *classification* subcrate's `serde` feature (see caveat below) |
+| `serde` | no | forwards to each enabled subcrate's `serde` feature, reaching the parser crates via the classification crates' weak forwarding (see below) |
 | `claml` | no | forwards to `who-fic-icd`'s `claml` feature (ICD-10 data loading) |
 | `linearization` | no | forwards to `who-fic-icd`/`who-fic-icf`/`who-fic-ichi`'s `linearization` feature (ICD-11/ICF/ICHI data loading) |
 
@@ -30,14 +30,14 @@ linearization = ["who-fic-icd?/linearization", "who-fic-icf?/linearization", "wh
 The crate must compile with `--no-default-features` (it is then just the
 common module).
 
-Caveat on `serde` + data loading (known gap, tracked in tasks.md's
-backlog): as the TOML above shows, `serde` forwards only to the three
-classification crates. It does not reach `who-fic-linearization` or
-`who-fic-claml`, so with `features = ["serde", "linearization"]` (or
-`"claml"`) the parser crates' own types (`LinearizationRow`,
-`ClamlDocument`, …) reached through the adapter modules are *not*
-serializable. Depend on the parser crate directly with its `serde`
-feature if you need that. `who-fic`'s own `Classification` and `FicError`
+`serde` + data loading compose: the umbrella's `serde` forwards to the
+classification crates, whose own `serde` features weakly forward onward
+(`who-fic-icd/serde = ["dep:serde", "who-fic-claml?/serde",
+"who-fic-linearization?/serde"]`, and likewise in icf/ichi) — so
+`["serde", "linearization"]` (or `"claml"`) makes the parser crates'
+types (`LinearizationRow`, `ClamlDocument`, …) serializable too. (This
+was a real gap through 0.3.1, fixed in 0.3.2; `tests/serde_forwarding.rs`
+is the regression test.) `who-fic`'s own `Classification` and `FicError`
 have no serde impls under any feature.
 
 ## Re-export surface
