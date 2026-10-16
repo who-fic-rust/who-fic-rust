@@ -11,6 +11,12 @@ crates with their own independent version.
 
 ## [Unreleased]
 
+## All crates [0.3.3 / 0.1.3 / 0.1.4] - 2026-10-16
+
+Maintenance release: dependencies refreshed (`cargo update`), no API
+changes. `who-fic`, `who-fic-icd`, `who-fic-icf`, `who-fic-ichi` 0.3.3;
+`who-fic-linearization` 0.1.3; `who-fic-claml` and `who-fic-icd-api` 0.1.4.
+
 ## who-fic / who-fic-icd / who-fic-icf / who-fic-ichi / who-fic-claml / who-fic-icd-api [0.3.2 / 0.1.3] - 2026-08-06
 
 Non-breaking fixes for the three defects found by the Phase 16
