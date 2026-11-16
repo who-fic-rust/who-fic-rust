@@ -11,6 +11,11 @@ crates with their own independent version.
 
 ## [Unreleased]
 
+## who-fic-icd-api [0.1.5] - 2026-11-16
+
+Maintenance release: `tokio` requirement raised to 1.54.1 (`cargo update`), no API changes. The other crates are
+unchanged and stay at their published versions.
+
 ## All crates [0.3.3 / 0.1.3 / 0.1.4] - 2026-10-16
 
 Maintenance release: dependencies refreshed (`cargo update`), no API
