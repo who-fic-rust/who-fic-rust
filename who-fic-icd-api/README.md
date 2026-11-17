@@ -28,7 +28,7 @@ WHO's own OpenAPI spec (`https://id.who.int/swagger/v2/swagger.json`); see
 
 ```toml
 [dependencies]
-who-fic-icd-api = "0.1"
+who-fic-icd-api = "0.2"
 who-fic-icd = "0.3"   # for typed codes, e.g. Icd11Code
 ```
 

@@ -23,7 +23,7 @@ classification content.
 
 ```toml
 [dependencies]
-who-fic-claml = "0.1"
+who-fic-claml = "0.2"
 ```
 
 ## Example

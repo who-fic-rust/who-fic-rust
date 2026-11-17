@@ -11,6 +11,14 @@ crates with their own independent version.
 
 ## [Unreleased]
 
+## All crates [0.4.0 / 0.2.0] - 2026-11-17
+
+Breaking (minimum supported Rust version raised): MSRV is now 1.98
+(was 1.85). Dependencies refreshed (`cargo update`); fixed a clippy
+`collapsible_if` in `who-fic-icd-api`. `who-fic`, `who-fic-icd`,
+`who-fic-icf`, `who-fic-ichi` 0.4.0; `who-fic-linearization`,
+`who-fic-claml`, `who-fic-icd-api` 0.2.0. No API changes.
+
 ## who-fic-icd-api [0.1.5] - 2026-11-16
 
 Maintenance release: `tokio` requirement raised to 1.54.1 (`cargo update`), no API changes. The other crates are
