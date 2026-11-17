@@ -12,7 +12,9 @@ repository.workspace = true
 authors.workspace = true
 
 [dependencies]
-reqwest = { version = "0.13.5", default-features = false, features = ["json", "rustls"] }
+reqwest = { version = "0.13.5", default-features = false, features = ["json", "rustls-no-provider"] }
+# The ring provider, so reqwest's `rustls` feature (aws-lc-rs) is not needed.
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 tokio = { version = "1.54.1", default-features = false, features = ["sync"] }
