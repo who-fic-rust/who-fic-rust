@@ -262,10 +262,10 @@ impl IcdApiClient {
     /// waits their turn.
     async fn access_token(&self) -> Result<String, IcdApiError> {
         let mut guard = self.token.lock().await;
-        if let Some(cached) = guard.as_ref() {
-            if Instant::now() < cached.expires_at {
-                return Ok(cached.access_token.clone());
-            }
+        if let Some(cached) = guard.as_ref()
+            && Instant::now() < cached.expires_at
+        {
+            return Ok(cached.access_token.clone());
         }
 
         let response = self.fetch_token().await?;

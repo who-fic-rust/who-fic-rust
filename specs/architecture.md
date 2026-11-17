@@ -39,10 +39,10 @@ Two version tracks:
 
 - Edition: 2024
 - License: MIT OR Apache-2.0 (code only; see "Licensing" below)
-- MSRV: 1.85, pinned via `rust-version` in `[workspace.package]` (edition
-  2024's minimum) — every crate inherits it, and CI's `msrv` job runs
+- MSRV: 1.98, pinned via `rust-version` in `[workspace.package]` (N-2 of stable) —
+  every crate inherits it, and CI's `msrv` job runs
   `cargo check --workspace --all-features` on that exact toolchain (a
-  compile check only — it does not run tests on 1.85).
+  compile check only — it does not run tests on 1.98).
 
 New subcrates are added as workspace members named with their parent
 crate's name as prefix — e.g. `who-fic-icd-api` (the WHO ICD-API client,
@@ -257,7 +257,7 @@ over `--all-features` / `--no-default-features` / default features),
 `feature-powerset` (`cargo hack check -p who-fic --feature-powerset`),
 `doc` (`cargo doc --workspace --all-features --no-deps` with
 `RUSTDOCFLAGS="-D warnings"`), `msrv` (`cargo check --workspace
---all-features` on the pinned 1.85 toolchain), `audit`
+--all-features` on the pinned 1.98 toolchain), `audit`
 (`rustsec/audit-check`), `deny` (`EmbarkStudios/cargo-deny-action`
 against `deny.toml`).
 

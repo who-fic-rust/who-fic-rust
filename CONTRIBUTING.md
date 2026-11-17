@@ -27,7 +27,7 @@ cargo build --workspace --all-features
 cargo test --workspace --all-features
 ```
 
-Rust edition 2024, MSRV 1.85 (pinned in `[workspace.package]` in the root
+Rust edition 2024, MSRV 1.98 (pinned in `[workspace.package]` in the root
 `Cargo.toml`).
 
 ## Before opening a PR

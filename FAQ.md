@@ -126,7 +126,7 @@ done the work to actually gate on it yet.
 
 ## What Rust version do I need?
 
-1.85 (edition 2024's minimum), pinned in the workspace's `rust-version`
+1.98 (N-2 of the current stable), pinned in the workspace's `rust-version`
 and checked by CI's `msrv` job on every push.
 
 ## Will a future release break my code?

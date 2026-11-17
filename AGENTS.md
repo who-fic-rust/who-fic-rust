@@ -89,7 +89,7 @@ because local verification only ever ran the former. Always run the exact
 `cargo test`/`cargo build` invocation CI runs, for the whole workspace,
 not an approximation scoped to the crate you touched.
 
-MSRV is 1.85 (edition 2024's minimum), pinned in the root `Cargo.toml`'s
+MSRV is 1.98 (N-2 of the current stable), pinned in the root `Cargo.toml`'s
 `[workspace.package]`.
 
 ## Architecture at a glance

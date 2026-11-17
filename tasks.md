@@ -103,7 +103,7 @@ See [specs/who-fic-ichi.md](specs/who-fic-ichi.md).
 ## Phase 6 — Release readiness
 
 - [x] CI workflow: fmt, clippy `-D warnings`, test, doc, feature matrix, MSRV
-- [x] Decide and pin MSRV (`rust-version` in `[workspace.package]`) — 1.85
+- [x] Decide and pin MSRV (`rust-version` in `[workspace.package]`) — 1.98
       (edition 2024's minimum)
 - [x] Per-crate README + crates.io metadata (description, keywords,
       categories, docs.rs config)
