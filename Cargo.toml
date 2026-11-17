@@ -28,3 +28,10 @@ who-fic-icf = { version = "0.4.0", path = "who-fic-icf" }
 who-fic-ichi = { version = "0.4.0", path = "who-fic-ichi" }
 who-fic-linearization = { version = "0.2.0", path = "who-fic-linearization" }
 who-fic-claml = { version = "0.2.0", path = "who-fic-claml" }
+
+# cargo-mutants builds every mutant once in a throwaway copy of the tree: no debug information and no
+# incremental state make each build quicker and smaller. `.cargo/mutants.toml` selects it.
+[profile.mutants]
+inherits = "test"
+debug = "none"
+incremental = false
