@@ -1,0 +1,5 @@
+#!/bin/sh
+# Line coverage with cargo-tarpaulin.
+set -eu
+cd "$(dirname "$0")/.."
+cargo tarpaulin --workspace

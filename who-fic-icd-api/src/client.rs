@@ -394,8 +394,14 @@ impl IcdApiClientBuilder {
     /// let client = IcdApiClient::builder("id", "secret").build();
     /// ```
     pub fn build(self) -> IcdApiClient {
+        let http = self.http_client.unwrap_or_else(|| {
+            // reqwest is built with `rustls-no-provider`; install the `ring`
+            // provider (an Err only means one is already installed).
+            let _ = rustls::crypto::ring::default_provider().install_default();
+            reqwest::Client::default()
+        });
         IcdApiClient {
-            http: self.http_client.unwrap_or_default(),
+            http,
             token_url: trim_trailing_slash(self.token_url),
             api_base_url: trim_trailing_slash(self.api_base_url),
             client_id: self.client_id,
