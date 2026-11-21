@@ -57,5 +57,4 @@ walks ICD-11 cluster syntax (`&`/`/`) in more depth.
 
 ## License
 
-Licensed under either of [Apache License, Version 2.0](LICENSE-APACHE) or
-[MIT license](LICENSE-MIT) at your option.
+Licensed under any one of the following, at your option: `MIT OR Apache-2.0 OR BSD-3-Clause OR GPL-2.0-only OR GPL-3.0-only OR OGL-UK-3.0 OR CC-BY-NC-SA-4.0`. See [LICENSE-MIT](LICENSE-MIT), [LICENSE-APACHE](LICENSE-APACHE), and the [repository LICENSE.md](https://github.com/who-fic-rust/who-fic-rust/blob/main/LICENSE.md).

@@ -38,7 +38,7 @@ Two version tracks:
   depend on).
 
 - Edition: 2024
-- License: MIT OR Apache-2.0 (code only; see "Licensing" below)
+- License: `MIT OR Apache-2.0 OR BSD-3-Clause OR GPL-2.0-only OR GPL-3.0-only OR OGL-UK-3.0 OR CC-BY-NC-SA-4.0` (code only; see "Licensing" below)
 - MSRV: 1.98, pinned via `rust-version` in `[workspace.package]` (N-2 of stable) —
   every crate inherits it, and CI's `msrv` job runs
   `cargo check --workspace --all-features` on that exact toolchain (a

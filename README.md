@@ -1,7 +1,7 @@
 # WHO-FIC-Rust
 
 [![CI](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/who-fic-rust/who-fic-rust/actions/workflows/ci.yml)
-[![license](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
+[![license](https://img.shields.io/badge/license-7%20choices-blue.svg)](#license)
 
 Rust crates for the World Health Organization (WHO) Family of
 International Classifications (FIC):
@@ -48,5 +48,7 @@ never vendored by these crates — see
 
 ## License
 
-Licensed under either of [Apache License, Version 2.0](LICENSE-APACHE) or
-[MIT license](LICENSE-MIT) at your option.
+Licensed under any one of the following, at your option (see [LICENSE.md](LICENSE.md); full texts in [LICENSES/](LICENSES/)):
+`MIT OR Apache-2.0 OR BSD-3-Clause OR GPL-2.0-only OR GPL-3.0-only OR OGL-UK-3.0 OR CC-BY-NC-SA-4.0`.
+
+These licenses cover this repository's code only, not WHO's ICD, ICF, or ICHI content.

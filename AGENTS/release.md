@@ -141,7 +141,7 @@ dependency first, then retry."
 ## Licenses in the package
 
 Every crate directory needs its own copy of `LICENSE-MIT`/`LICENSE-APACHE`
-(not just at the workspace root) — `cargo package` doesn't reach outside
+(not just at the workspace root; the full seven-license texts live in the root `LICENSES/`) — `cargo package` doesn't reach outside
 the crate directory for files by default. New crates must have these
 copied in before their first publish, or `cargo publish --dry-run` will
 still "succeed" but the published package won't carry them.

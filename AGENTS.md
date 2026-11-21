@@ -136,7 +136,8 @@ who-fic-rust/ (virtual workspace)
 
 ## Repository conventions
 
-- Dual-licensed MIT / Apache-2.0. Copy `LICENSE-MIT`/`LICENSE-APACHE` into
+- Licensed under any one of seven licenses (`MIT OR Apache-2.0 OR BSD-3-Clause OR GPL-2.0-only OR GPL-3.0-only OR OGL-UK-3.0 OR CC-BY-NC-SA-4.0`; see
+  `LICENSE.md` and `spec/licenses/index.md`; texts in `LICENSES/`). Copy `LICENSE-MIT`/`LICENSE-APACHE` into
   any new crate directory (crates.io packaging needs them locally, not
   just at the workspace root).
 - Every crate has `#![warn(missing_docs)]` in `lib.rs`; combined with
