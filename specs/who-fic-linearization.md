@@ -82,6 +82,30 @@ Common to all three classifications (MMS, ICF, ICHI):
 | 14 | `Primary tabulation` (`True`/`False`/empty) |
 | 15–19 | `Grouping1`…`Grouping5` (block-id references for postcoordination groupings; empty when unused) |
 
+## Empty columns (requirement LIN-1)
+
+- **LIN-1. An empty column means absent / not applicable.** WHO's exports
+  leave non-applicable columns empty (and may omit trailing columns). For
+  the non-`Option` typed columns, a column that is empty after trimming
+  (or missing from a short line) is *absent*, and the declared default
+  applies only then:
+
+  | Column | Type | Absent default |
+  |---|---|---|
+  | `DepthInKind` | `u32` | `0` |
+  | `noOfNonResidualChildren` | `u32` | `0` |
+  | `IsResidual` | `bool` | `false` |
+  | `isLeaf` | `bool` | `false` |
+
+  `PrimaryLocation` and `Primary tabulation` are tri-state: empty is `None`,
+  never `false`. Any **non-empty** value that is not valid for the column
+  type is an error, never defaulted: a boolean must be `True`/`False`
+  (case-insensitive), else `InvalidBoolean { line, field, found }`; an
+  integer must parse as `u32`, else `InvalidInteger { line, field, found }`.
+  Implemented in `who-fic-linearization/src/row.rs` (`parse_bool`,
+  `parse_u32`), which cite this id per RCA-IN-3 (see
+  [../spec/rust-checked-arithmetic/index.md](../spec/rust-checked-arithmetic/index.md)).
+
 ## Types
 
 - `LinearizationRow` (`Clone + Debug + PartialEq + Eq`) — one row, all
