@@ -206,6 +206,7 @@ fn non_empty(field: &str) -> Option<String> {
 /// `false`.
 fn parse_bool(field: &str, name: &'static str, line: usize) -> Result<bool, LinearizationError> {
     let trimmed = field.trim();
+    // RCA-IN-3: absent only; the export leaves non-applicable columns empty (documented above).
     if trimmed.is_empty() {
         Ok(false)
     } else if trimmed.eq_ignore_ascii_case("true") {
@@ -246,6 +247,7 @@ fn parse_opt_bool(
 /// Parses an unsigned-integer field, defaulting a missing/empty field to 0.
 fn parse_u32(field: &str, name: &'static str, line: usize) -> Result<u32, LinearizationError> {
     let trimmed = field.trim();
+    // RCA-IN-3: absent only; the export leaves non-applicable columns empty (documented above).
     if trimmed.is_empty() {
         return Ok(0);
     }

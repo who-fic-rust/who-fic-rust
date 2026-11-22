@@ -195,6 +195,7 @@ fn parse_root_children(reader: &mut Reader<&[u8]>) -> Result<ClamlDocument, Clam
 fn finish_class(reader: &Reader<&[u8]>, start: &BytesStart<'_>) -> Result<Class, ClamlError> {
     let code = attr_value(start, "code", reader)?
         .ok_or_else(|| ClamlError::missing_attribute("Class", "code", reader.buffer_position()))?;
+    // RCA-IN-3: absent only; documented on `Class::kind` / `Label::lang` (absent attribute).
     let kind = attr_value(start, "kind", reader)?.unwrap_or_default();
     Ok(Class {
         code,
@@ -209,6 +210,7 @@ fn finish_class(reader: &Reader<&[u8]>, start: &BytesStart<'_>) -> Result<Class,
 fn parse_class(reader: &mut Reader<&[u8]>, start: &BytesStart<'_>) -> Result<Class, ClamlError> {
     let code = attr_value(start, "code", reader)?
         .ok_or_else(|| ClamlError::missing_attribute("Class", "code", reader.buffer_position()))?;
+    // RCA-IN-3: absent only; documented on `Class::kind` / `Label::lang` (absent attribute).
     let kind = attr_value(start, "kind", reader)?.unwrap_or_default();
     let mut super_classes = Vec::new();
     let mut sub_classes = Vec::new();
@@ -273,6 +275,7 @@ fn parse_class(reader: &mut Reader<&[u8]>, start: &BytesStart<'_>) -> Result<Cla
 /// tag.
 fn finish_rubric(reader: &Reader<&[u8]>, start: &BytesStart<'_>) -> Result<Rubric, ClamlError> {
     Ok(Rubric {
+        // RCA-IN-3: absent only; documented on `Class::kind` (absent attribute).
         kind: attr_value(start, "kind", reader)?.unwrap_or_default(),
         labels: Vec::new(),
     })
@@ -281,6 +284,7 @@ fn finish_rubric(reader: &Reader<&[u8]>, start: &BytesStart<'_>) -> Result<Rubri
 /// Parses a `Rubric` element and its `Label` children, up to its own end
 /// tag.
 fn parse_rubric(reader: &mut Reader<&[u8]>, start: &BytesStart<'_>) -> Result<Rubric, ClamlError> {
+    // RCA-IN-3: absent only; documented on `Class::kind` / `Label::lang` (absent attribute).
     let kind = attr_value(start, "kind", reader)?.unwrap_or_default();
     let mut labels = Vec::new();
 
@@ -310,6 +314,7 @@ fn parse_rubric(reader: &mut Reader<&[u8]>, start: &BytesStart<'_>) -> Result<Ru
 /// Builds a `Label` with empty text, from a self-closing `<Label .../>`
 /// tag.
 fn finish_label(reader: &Reader<&[u8]>, start: &BytesStart<'_>) -> Result<Label, ClamlError> {
+    // RCA-IN-3: absent only; documented on `Class::kind` / `Label::lang` (absent attribute).
     let lang = attr_value(start, "xml:lang", reader)?.unwrap_or_else(|| "en".to_string());
     Ok(Label {
         lang,
@@ -320,6 +325,7 @@ fn finish_label(reader: &Reader<&[u8]>, start: &BytesStart<'_>) -> Result<Label,
 /// Parses a `Label` element, flattening any nested markup into its text
 /// (see [`crate::Label`]'s docs for the rationale).
 fn parse_label(reader: &mut Reader<&[u8]>, start: &BytesStart<'_>) -> Result<Label, ClamlError> {
+    // RCA-IN-3: absent only; documented on `Class::kind` / `Label::lang` (absent attribute).
     let lang = attr_value(start, "xml:lang", reader)?.unwrap_or_else(|| "en".to_string());
     let text = read_flattened_text(reader, "Label")?;
     Ok(Label { lang, text })
