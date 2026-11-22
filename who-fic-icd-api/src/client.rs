@@ -20,6 +20,22 @@ const API_VERSION: &str = "v2";
 /// it, to avoid racing a request against the token expiring mid-flight.
 const TOKEN_SAFETY_MARGIN: Duration = Duration::from_secs(60);
 
+/// The instant a token fetched at `now` with a lifetime of `expires_in_secs` should be
+/// refetched: its lifetime minus [`TOKEN_SAFETY_MARGIN`].
+///
+/// Fallback: `Duration::ZERO` for the usable lifetime — a token whose reported lifetime
+/// is shorter than the safety margin is already inside the margin, so it counts as
+/// expired at once and the next call refetches (the same as the margin's purpose).
+/// A lifetime that cannot be represented as an `Instant` is a malformed token response
+/// and is an [`IcdApiError::Auth`], not a clamped expiry (RCA-DECL-5).
+fn token_expiry(now: Instant, expires_in_secs: u64) -> Result<Instant, IcdApiError> {
+    let usable = Duration::from_secs(expires_in_secs)
+        .checked_sub(TOKEN_SAFETY_MARGIN)
+        .unwrap_or(Duration::ZERO);
+    now.checked_add(usable)
+        .ok_or_else(|| IcdApiError::Auth("token response expires_in is out of range".to_string()))
+}
+
 /// An async client for the WHO ICD-API (<https://id.who.int>).
 ///
 /// Handles OAuth2 client-credentials authentication (fetching and caching
@@ -269,8 +285,7 @@ impl IcdApiClient {
         }
 
         let response = self.fetch_token().await?;
-        let expires_in = Duration::from_secs(response.expires_in);
-        let expires_at = Instant::now() + expires_in.saturating_sub(TOKEN_SAFETY_MARGIN);
+        let expires_at = token_expiry(Instant::now(), response.expires_in)?;
         let access_token = response.access_token;
         *guard = Some(CachedToken {
             access_token: access_token.clone(),
@@ -477,6 +492,29 @@ fn form_urlencode(pairs: &[(&str, &str)]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn token_expiry_subtracts_the_margin() {
+        let now = Instant::now();
+        // Last lifetime that leaves usable time: margin + 1 s.
+        assert_eq!(
+            token_expiry(now, 61).ok(),
+            Some(now + Duration::from_secs(1))
+        );
+        // Exactly the margin: usable is zero (no fallback needed).
+        assert_eq!(token_expiry(now, 60).ok(), Some(now));
+        // First failing subtraction: margin - 1 s falls back to ZERO, so already expired.
+        assert_eq!(token_expiry(now, 59).ok(), Some(now));
+        assert_eq!(token_expiry(now, 0).ok(), Some(now));
+    }
+
+    #[test]
+    fn token_expiry_rejects_an_unrepresentable_lifetime() {
+        assert!(matches!(
+            token_expiry(Instant::now(), u64::MAX),
+            Err(IcdApiError::Auth(message)) if message == "token response expires_in is out of range"
+        ));
+    }
 
     #[test]
     fn percent_encode_leaves_unreserved_characters_alone() {
