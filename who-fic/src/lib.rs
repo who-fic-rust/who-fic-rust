@@ -323,4 +323,145 @@ mod tests {
     fn classification_rejects_unknown() {
         assert!(Classification::from_str("nope").is_err());
     }
+
+    #[test]
+    fn displays_classifications_and_errors() {
+        assert_eq!(Classification::Icd10.to_string(), "ICD-10");
+        let error = Classification::from_str("nope").unwrap_err();
+        assert_eq!(
+            error.to_string(),
+            "unknown WHO-FIC classification: \"nope\""
+        );
+        assert_eq!(FicError::Empty.to_string(), "empty input");
+        assert_eq!(
+            FicError::InvalidLength {
+                expected: "3",
+                found: 1
+            }
+            .to_string(),
+            "invalid length: expected 3, found 1"
+        );
+        assert_eq!(
+            FicError::InvalidCharacter {
+                position: 2,
+                found: 'x'
+            }
+            .to_string(),
+            "invalid character 'x' at position 2"
+        );
+        assert_eq!(
+            FicError::InvalidStructure { reason: "bad" }.to_string(),
+            "invalid structure: bad"
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "icd")]
+    fn icd_conversions_map_every_variant() {
+        use who_fic_icd::icd10::Icd10ParseError as A;
+        use who_fic_icd::icd11::Icd11ParseError as B;
+        assert!(matches!(
+            FicError::from(A::InvalidLength { found: 2 }),
+            FicError::InvalidLength { found: 2, .. }
+        ));
+        assert_eq!(
+            FicError::from(A::InvalidCharacter {
+                position: 1,
+                found: 'x'
+            }),
+            FicError::InvalidCharacter {
+                position: 1,
+                found: 'x'
+            }
+        );
+        assert_eq!(
+            FicError::from(A::InvalidStructure { reason: "r" }),
+            FicError::InvalidStructure { reason: "r" }
+        );
+        assert_eq!(FicError::from(B::Empty), FicError::Empty);
+        assert!(matches!(
+            FicError::from(B::InvalidLength { found: 2 }),
+            FicError::InvalidLength { found: 2, .. }
+        ));
+        assert_eq!(
+            FicError::from(B::InvalidCharacter {
+                position: 1,
+                found: 'x'
+            }),
+            FicError::InvalidCharacter {
+                position: 1,
+                found: 'x'
+            }
+        );
+        assert_eq!(
+            FicError::from(B::InvalidStructure { reason: "r" }),
+            FicError::InvalidStructure { reason: "r" }
+        );
+        assert_eq!(FicError::from(A::Empty), FicError::Empty);
+    }
+
+    #[test]
+    #[cfg(feature = "icf")]
+    fn icf_conversions_map_every_variant() {
+        use who_fic_icf::IcfParseError as E;
+        assert_eq!(
+            FicError::from(E::InvalidLength {
+                expected: "4",
+                found: 2
+            }),
+            FicError::InvalidLength {
+                expected: "4",
+                found: 2
+            }
+        );
+        assert_eq!(
+            FicError::from(E::InvalidCharacter {
+                position: 1,
+                found: 'x'
+            }),
+            FicError::InvalidCharacter {
+                position: 1,
+                found: 'x'
+            }
+        );
+        assert_eq!(
+            FicError::from(E::InvalidStructure { reason: "r" }),
+            FicError::InvalidStructure { reason: "r" }
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "ichi")]
+    fn ichi_conversions_map_every_variant() {
+        use who_fic_ichi::IchiParseError as E;
+        assert_eq!(
+            FicError::from(E::InvalidLength {
+                expected: "3",
+                found: 1,
+                axis: None
+            }),
+            FicError::InvalidLength {
+                expected: "3",
+                found: 1
+            }
+        );
+        assert_eq!(
+            FicError::from(E::InvalidCharacter {
+                position: 1,
+                found: 'x',
+                axis: None
+            }),
+            FicError::InvalidCharacter {
+                position: 1,
+                found: 'x'
+            }
+        );
+        assert_eq!(
+            FicError::from(E::InvalidStructure {
+                reason: "r",
+                axis: None
+            }),
+            FicError::InvalidStructure { reason: "r" }
+        );
+    }
 }
