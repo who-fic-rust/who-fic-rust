@@ -434,3 +434,140 @@ fn parse_modifier(
 
     Ok(Modifier { code, rubrics })
 }
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use crate::{ClamlDocument, ClamlError};
+
+    fn parse(xml: &str) -> Result<ClamlDocument, ClamlError> {
+        ClamlDocument::from_str(xml)
+    }
+
+    fn eof_in(xml: &str, element: &str) {
+        match parse(xml) {
+            Err(ClamlError::UnexpectedEof { element: found, .. }) => assert_eq!(found, element),
+            other => panic!("expected UnexpectedEof in {element}, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn empty_input_and_self_closing_root_are_empty_documents() {
+        assert_eq!(parse("").unwrap(), ClamlDocument::default());
+        assert_eq!(parse("<ClaML/>").unwrap(), ClamlDocument::default());
+        assert_eq!(
+            parse("<?xml version=\"1.0\"?><!-- c --><ClaML/>").unwrap(),
+            ClamlDocument::default()
+        );
+    }
+
+    #[test]
+    fn truncated_documents_report_the_open_element() {
+        eof_in("<ClaML><Class code=\"A\">", "Class");
+        eof_in("<ClaML>", "ClaML");
+        eof_in("<ClaML><Class code=\"A\"><Rubric kind=\"k\">", "Rubric");
+        eof_in("<ClaML><Class code=\"A\"><Rubric><Label>x", "Label");
+        eof_in("<ClaML><Title>x", "Title");
+        eof_in("<ClaML><ModifierClass code=\"M\">", "ModifierClass");
+        eof_in(
+            "<ClaML><ModifierClass code=\"M\"><Modifier code=\"m\">",
+            "Modifier",
+        );
+        eof_in("<ClaML><Identifier><a>", "element");
+    }
+
+    #[test]
+    fn unknown_elements_are_skipped_at_every_level() {
+        let xml = "<ClaML><Meta><a><b/></a></Meta><Unknown/>\
+            <Class code=\"A\"><Extra><x/></Extra><Unknown/>\
+            <Rubric kind=\"k\"><Extra><y/></Extra><Unknown/></Rubric></Class>\
+            <ModifierClass code=\"M\"><Extra/><Extra><z/></Extra>\
+            <Modifier code=\"m\"><Extra><w/></Extra><Unknown/></Modifier></ModifierClass></ClaML>";
+        let doc = parse(xml).unwrap();
+        assert_eq!(doc.classes().len(), 1);
+        assert_eq!(doc.classes()[0].rubrics().len(), 1);
+        assert_eq!(doc.modifier_classes()[0].modifiers().len(), 1);
+    }
+
+    #[test]
+    fn self_closing_elements_build_empty_values() {
+        let xml = "<ClaML><Class code=\"A\" kind=\"block\"/><ModifierClass code=\"M\"/>\
+            <Class code=\"B\"><Rubric kind=\"r\"/><SuperClass code=\"A\"/><SubClass code=\"C\"/></Class>\
+            <Class code=\"D\"><Rubric kind=\"r\"><Label xml:lang=\"fr\"/><Label/></Rubric></Class>\
+            <ModifierClass code=\"N\"><Rubric kind=\"r\"/><Modifier code=\"m\"/></ModifierClass>\
+            <Class code=\"E\"><Other/></Class>\
+            <ModifierClass code=\"O\"><Other/></ModifierClass>\
+            <Other/></ClaML>";
+        let doc = parse(xml).unwrap();
+        assert_eq!(doc.classes()[0].kind(), "block");
+        assert_eq!(doc.classes()[1].super_classes(), ["A"]);
+        assert_eq!(doc.classes()[1].sub_classes(), ["C"]);
+        let labels = doc.classes()[2].rubrics()[0].labels();
+        assert_eq!(labels[0].lang(), "fr");
+        assert_eq!(labels[0].text(), "");
+        assert_eq!(doc.modifier_classes()[1].modifiers()[0].rubrics().len(), 0);
+    }
+
+    #[test]
+    fn start_end_pairs_for_super_and_sub_classes_are_recorded() {
+        let xml = "<ClaML><Class code=\"A\"><SuperClass code=\"P\"></SuperClass>\
+            <SubClass code=\"S\"></SubClass><SuperClass></SuperClass><SubClass></SubClass>\
+            <SuperClass/><SubClass/></Class></ClaML>";
+        let doc = parse(xml).unwrap();
+        assert_eq!(doc.classes()[0].super_classes(), ["P"]);
+        assert_eq!(doc.classes()[0].sub_classes(), ["S"]);
+    }
+
+    #[test]
+    fn entities_cdata_and_nested_markup_flatten_into_label_text() {
+        let xml =
+            "<ClaML><Title>T &amp; U &#65; &custom;<b>in</b><![CDATA[<raw>]]></Title></ClaML>";
+        assert_eq!(parse(xml).unwrap().title(), Some("T & U A &custom;in<raw>"));
+    }
+
+    #[test]
+    fn missing_code_attributes_are_errors_for_every_element() {
+        for (xml, element) in [
+            ("<ClaML><Class/></ClaML>", "Class"),
+            ("<ClaML><Class></Class></ClaML>", "Class"),
+            ("<ClaML><ModifierClass/></ClaML>", "ModifierClass"),
+            (
+                "<ClaML><ModifierClass></ModifierClass></ClaML>",
+                "ModifierClass",
+            ),
+            (
+                "<ClaML><ModifierClass code=\"M\"><Modifier/></ModifierClass></ClaML>",
+                "Modifier",
+            ),
+            (
+                "<ClaML><ModifierClass code=\"M\"><Modifier></Modifier></ModifierClass></ClaML>",
+                "Modifier",
+            ),
+        ] {
+            match parse(xml) {
+                Err(ClamlError::MissingAttribute {
+                    element: found,
+                    attribute,
+                    ..
+                }) => {
+                    assert_eq!((found, attribute), (element, "code"));
+                }
+                other => panic!("{xml}: {other:?}"),
+            }
+        }
+    }
+
+    #[test]
+    fn malformed_xml_and_bad_attributes_are_errors() {
+        for xml in [
+            "<ClaML><Class code=\"A\"></Wrong></ClaML>",
+            "<ClaML><Class code=\"A\" code=\"B\"/></ClaML>",
+            "<ClaML><Class code=A/></ClaML>",
+            "<ClaML><Title>&#xZZ;</Title></ClaML>",
+            "<ClaML><Title>&#1114112;</Title></ClaML>",
+        ] {
+            assert!(parse(xml).is_err(), "{xml}");
+        }
+    }
+}
