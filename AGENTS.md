@@ -81,6 +81,12 @@ cargo audit                                          # cargo install cargo-audit
 cargo deny check                                     # cargo install cargo-deny if missing
 ```
 
+Faster local runs with cargo-nextest (optional; `.config/nextest.toml`): run
+`cargo nextest run --workspace --all-features` (or without `--all-features`,
+or with `--no-default-features`), then `cargo test --workspace --doc` because
+nextest skips doctests. It does not replace the `cargo test` gate above.
+Retries are off so a flaky test is never hidden.
+
 **Gotcha, learned the hard way**: `cargo build -p <crate> --no-default-features`
 (lib only) is *not* the same check as `cargo test --workspace
 --no-default-features` (also compiles examples and tests). CI failed
