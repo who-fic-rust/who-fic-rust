@@ -159,3 +159,72 @@ impl fmt::Display for IchiParseError {
 }
 
 impl std::error::Error for IchiParseError {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn displays_every_axis_and_variant() {
+        assert_eq!(Axis::Target.to_string(), "target");
+        assert_eq!(Axis::Action.to_string(), "action");
+        assert_eq!(Axis::Means.to_string(), "means");
+        let a = Some(Axis::Action);
+        let cases = [
+            (
+                IchiParseError::Empty { axis: a },
+                "empty input for action axis",
+            ),
+            (IchiParseError::Empty { axis: None }, "empty input"),
+            (
+                IchiParseError::InvalidLength {
+                    expected: "3",
+                    found: 1,
+                    axis: a,
+                },
+                "invalid length for action axis: expected 3 character(s), found 1",
+            ),
+            (
+                IchiParseError::InvalidLength {
+                    expected: "3",
+                    found: 1,
+                    axis: None,
+                },
+                "invalid length: expected 3 character(s), found 1",
+            ),
+            (
+                IchiParseError::InvalidCharacter {
+                    position: 2,
+                    found: 'q',
+                    axis: a,
+                },
+                "invalid character 'q' at position 2 in action axis",
+            ),
+            (
+                IchiParseError::InvalidCharacter {
+                    position: 2,
+                    found: 'q',
+                    axis: None,
+                },
+                "invalid character 'q' at position 2",
+            ),
+            (
+                IchiParseError::InvalidStructure {
+                    reason: "bad",
+                    axis: a,
+                },
+                "invalid structure in action axis: bad",
+            ),
+            (
+                IchiParseError::InvalidStructure {
+                    reason: "bad",
+                    axis: None,
+                },
+                "invalid structure: bad",
+            ),
+        ];
+        for (error, text) in cases {
+            assert_eq!(error.to_string(), text);
+        }
+    }
+}

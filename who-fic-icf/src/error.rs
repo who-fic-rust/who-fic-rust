@@ -67,3 +67,33 @@ impl fmt::Display for IcfParseError {
 }
 
 impl std::error::Error for IcfParseError {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn displays_every_variant() {
+        assert_eq!(IcfParseError::Empty.to_string(), "empty input");
+        assert_eq!(
+            IcfParseError::InvalidLength {
+                expected: "4",
+                found: 2
+            }
+            .to_string(),
+            "invalid length: expected 4, found 2"
+        );
+        assert_eq!(
+            IcfParseError::InvalidCharacter {
+                position: 3,
+                found: 'x'
+            }
+            .to_string(),
+            "invalid character 'x' at position 3"
+        );
+        assert_eq!(
+            IcfParseError::InvalidStructure { reason: "bad" }.to_string(),
+            "invalid structure: bad"
+        );
+    }
+}

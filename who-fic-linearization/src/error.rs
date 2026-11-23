@@ -122,3 +122,49 @@ impl fmt::Display for LinearizationError {
 }
 
 impl std::error::Error for LinearizationError {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn displays_every_variant_and_reports_its_line() {
+        let cases = [
+            (
+                LinearizationError::Io {
+                    line: 1,
+                    message: "boom".into(),
+                },
+                "line 1: I/O error reading input: boom",
+            ),
+            (
+                LinearizationError::UnterminatedQuotedField { line: 2 },
+                "line 2: unterminated quoted field",
+            ),
+            (
+                LinearizationError::TrailingDataAfterQuotedField { line: 3 },
+                "line 3: unexpected data after a quoted field's closing quote",
+            ),
+            (
+                LinearizationError::InvalidBoolean {
+                    line: 4,
+                    field: "f",
+                    found: "x".into(),
+                },
+                "line 4: field \"f\" is not a valid boolean: \"x\"",
+            ),
+            (
+                LinearizationError::InvalidInteger {
+                    line: 5,
+                    field: "n",
+                    found: "y".into(),
+                },
+                "line 5: field \"n\" is not a valid integer: \"y\"",
+            ),
+        ];
+        for (index, (error, text)) in cases.iter().enumerate() {
+            assert_eq!(error.to_string(), *text);
+            assert_eq!(error.line(), index + 1);
+        }
+    }
+}

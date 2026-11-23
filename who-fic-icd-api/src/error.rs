@@ -66,3 +66,31 @@ impl std::error::Error for IcdApiError {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn displays_and_chains_sources() {
+        let auth = IcdApiError::Auth("nope".into());
+        assert_eq!(auth.to_string(), "WHO ICD-API authentication failed: nope");
+        assert!(auth.source().is_none());
+
+        let status = IcdApiError::Status {
+            status: 404,
+            body: "gone".into(),
+        };
+        assert_eq!(status.to_string(), "WHO ICD-API returned HTTP 404: gone");
+        assert!(status.source().is_none());
+
+        let decode = IcdApiError::Decode(serde_json::from_str::<u8>("x").unwrap_err());
+        assert!(
+            decode
+                .to_string()
+                .starts_with("failed to decode WHO ICD-API response: ")
+        );
+        assert!(decode.source().is_some());
+    }
+}
