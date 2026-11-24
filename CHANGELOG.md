@@ -11,6 +11,10 @@ crates with their own independent version.
 
 ## [Unreleased]
 
+### Changed
+
+- License option `CC-BY-NC-SA-4.0` replaced by `CC-BY-SA-4.0` (Attribution-ShareAlike 4.0 International). The other six licenses are unchanged.
+
 ## who-fic* [0.5.0], who-fic-linearization [0.3.0], who-fic-icd-api [0.2.1] - 2026-11-24
 
 Behaviour change (who-fic-linearization 0.3.0, spec LIN-1): an empty

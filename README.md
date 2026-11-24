@@ -49,6 +49,6 @@ never vendored by these crates — see
 ## License
 
 Licensed under any one of the following, at your option (see [LICENSE.md](LICENSE.md); full texts in [LICENSES/](LICENSES/)):
-`MIT OR Apache-2.0 OR BSD-3-Clause OR GPL-2.0-only OR GPL-3.0-only OR OGL-UK-3.0 OR CC-BY-NC-SA-4.0`.
+`MIT OR Apache-2.0 OR BSD-3-Clause OR GPL-2.0-only OR GPL-3.0-only OR OGL-UK-3.0 OR CC-BY-SA-4.0`.
 
 These licenses cover this repository's code only, not WHO's ICD, ICF, or ICHI content.
