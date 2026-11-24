@@ -11,6 +11,17 @@ crates with their own independent version.
 
 ## [Unreleased]
 
+## who-fic* [0.5.0], who-fic-linearization [0.3.0], who-fic-icd-api [0.2.1] - 2026-11-24
+
+Behaviour change (who-fic-linearization 0.3.0, spec LIN-1): an empty
+linearization column now means absent, with documented defaults, instead of
+an empty value. Because `who-fic-icd`, `who-fic-icf` and `who-fic-ichi`
+re-export the linearization types, they move to 0.5.0 together with `who-fic`
+(lockstep). `who-fic-icd-api` 0.2.1: installs the `ring` TLS provider for the
+default client and computes token expiry with checked arithmetic and a
+declared fallback. Lockfile: `url` 2.5.9 (RUSTSEC-2026-0592). `who-fic-claml`
+is unchanged at 0.2.0.
+
 ## All crates [0.4.0 / 0.2.0] - 2026-11-17
 
 Breaking (minimum supported Rust version raised): MSRV is now 1.98

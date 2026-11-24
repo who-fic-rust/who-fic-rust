@@ -1606,7 +1606,7 @@ dependencies = [
 
 [[package]]
 name = "who-fic"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "serde_json",
  "who-fic-claml",
@@ -1627,7 +1627,7 @@ dependencies = [
 
 [[package]]
 name = "who-fic-icd"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "proptest",
  "serde",
@@ -1638,7 +1638,7 @@ dependencies = [
 
 [[package]]
 name = "who-fic-icd-api"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "reqwest",
  "rustls",
@@ -1651,7 +1651,7 @@ dependencies = [
 
 [[package]]
 name = "who-fic-icf"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "proptest",
  "serde",
@@ -1661,7 +1661,7 @@ dependencies = [
 
 [[package]]
 name = "who-fic-ichi"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "proptest",
  "serde",
@@ -1671,7 +1671,7 @@ dependencies = [
 
 [[package]]
 name = "who-fic-linearization"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "proptest",
  "serde",

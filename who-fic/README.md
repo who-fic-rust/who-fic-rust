@@ -28,7 +28,7 @@ need to trim dependencies:
 
 ```toml
 [dependencies]
-who-fic = { version = "0.4", default-features = false, features = ["icd"] }
+who-fic = { version = "0.5", default-features = false, features = ["icd"] }
 ```
 
 ## Example

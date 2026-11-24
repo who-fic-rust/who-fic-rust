@@ -29,7 +29,7 @@ bundle, or embed WHO's classification content.
 
 ```toml
 [dependencies]
-who-fic-linearization = "0.2"
+who-fic-linearization = "0.3"
 ```
 
 ## Example

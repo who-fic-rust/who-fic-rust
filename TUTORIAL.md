@@ -12,7 +12,7 @@ If you only need one classification, depend on its crate directly:
 
 ```toml
 [dependencies]
-who-fic-icd = "0.4"   # or who-fic-icf, who-fic-ichi
+who-fic-icd = "0.5"   # or who-fic-icf, who-fic-ichi
 ```
 
 If you need more than one, or want the shared `Classification`/`FicError`
@@ -21,7 +21,7 @@ through its re-exports:
 
 ```toml
 [dependencies]
-who-fic = "0.4"   # icd + icf + ichi all enabled by default
+who-fic = "0.5"   # icd + icf + ichi all enabled by default
 ```
 
 ```rust
@@ -153,7 +153,7 @@ precisely as the download-area steps above.
 
 ```toml
 [dependencies]
-who-fic-icd = { version = "0.4", features = ["linearization"] }
+who-fic-icd = { version = "0.5", features = ["linearization"] }
 who-fic-linearization = "0.2"
 ```
 
